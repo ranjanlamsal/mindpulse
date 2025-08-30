@@ -1,0 +1,63 @@
+from django.db import models
+from core.models.channel_model import Channel
+from core.models.base_model import AbstractBaseModel
+from core.constants import (
+    SENTIMENT_MAPPING,
+    STRESS_MAPPING,
+    EMOTION_MAPPING
+)
+
+
+class Message(AbstractBaseModel):
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    user_hash = models.UUIDField(db_index=True)
+    message = models.TextField()
+    external_ref = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('channel', 'external_ref')
+        indexes = [
+            models.Index(fields=['user_hash', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"Message from {self.channel} at {self.created_at}"
+
+
+class MessageAnalysis(AbstractBaseModel):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    sentiment = models.CharField(
+        max_length=20,
+        choices=[
+            ('positive', 'Positive'),
+            ('negative', 'Negative'),
+            ('neutral', 'Neutral')  # Added to handle defaults
+        ]
+    )
+    sentiment_score = models.FloatField()
+
+    emotion = models.CharField(
+        max_length=50,
+        choices=[
+            ('sadness', 'Sadness'),
+            ('joy', 'Joy'),
+            ('love', 'Love'),
+            ('anger', 'Anger'),
+            ('fear', 'Fear'),
+            ('surprise', 'Surprise'),
+            ('unknown', 'Unknown')  # Added to handle defaults
+        ]
+    )
+    emotion_score = models.FloatField()
+
+    stress = models.BooleanField(default=False)
+    stress_score = models.FloatField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['message']),
+        ]
+
+    def __str__(self):
+        return f"Analysis for message {self.message}"
+    

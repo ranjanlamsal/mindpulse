@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Discord_Channel_1",
+    "type": "discord",
+    "channel_id": "085ee11d-b86d-404d-9167-a5e6d7868e21"
+  },
+  {
+    "name": "Discord_Channel_2",
+    "type": "discord",
+    "channel_id": "451141e0-d62d-4fff-a93b-39a47f0348da"
+  },
+  {
+    "name": "Discord_Channel_3",
+    "type": "discord",
+    "channel_id": "354e1e10-ad85-4146-ae0e-41db3cf80cc2"
+  },
+  {
+    "name": "Discord_Channel_4",
+    "type": "discord",
+    "channel_id": "9a498802-dad1-4c92-8e28-b1f8cbfb4e02"
+  },
+  {
+    "name": "Meeting_Channel_1",
+    "type": "meeting",
+    "channel_id": "80b7e54a-d573-4eb8-89d5-f85828bbd787"
+  },
+  {
+    "name": "Meeting_Channel_2",
+    "type": "meeting",
+    "channel_id": "c3c8f27b-a417-478c-8cb6-22355233d77e"
+  },
+  {
+    "name": "Meeting_Channel_3",
+    "type": "meeting",
+    "channel_id": "3ee23201-ca2e-4e59-b137-e3b8d0b76727"
+  },
+  {
+    "name": "Jira_Channel_1",
+    "type": "jira",
+    "channel_id": "3577d5d3-34c4-43a8-a946-4d219e88231a"
+  },
+  {
+    "name": "Jira_Channel_2",
+    "type": "jira",
+    "channel_id": "db731122-5c4f-4635-93f5-01bac2339742"
+  },
+  {
+    "name": "Jira_Channel_3",
+    "type": "jira",
+    "channel_id": "074f9876-8cfb-461b-892c-ac7cc6a1e596"
+  }
+]

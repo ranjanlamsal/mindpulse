@@ -1,0 +1,74 @@
+from django.db import models
+from core.models.base_model import AbstractBaseModel
+
+
+class Channel(AbstractBaseModel):
+    name = models.CharField(max_length=100)
+    type = models.CharField(
+        max_length=50,
+        choices=[('jira', 'Jira'), ('chat', 'Chat'), ('meeting', 'Meeting'), ('discord', 'Discord')]
+    )
+    external_id = models.CharField(max_length=50)
+    is_active = models.BooleanField(default = True)
+    class Meta:
+        indexes = [
+            models.Index(fields=['type']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.type})"
+
+    @classmethod
+    def get_or_create_channel_instance(cls, name, type, external_id):
+        channel, created = cls.objects.get_or_create(
+            type=type,
+            external_id=external_id,
+            defaults={"name": name}
+        )
+
+        if not created and channel.name != name:
+            channel.name = name
+            channel.save(update_fields=["name"])
+        return channel, created
+
+
+class WellbeingIndex(AbstractBaseModel):
+    user_hash = models.UUIDField(db_index=True)
+    source = models.ForeignKey(Channel, on_delete=models.CASCADE)
+    sentiment_avg = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    stress_avg = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    emotion_avg = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+
+    class Meta:
+        unique_together = ('user_hash', 'source', 'period_start')
+        indexes = [
+            models.Index(fields=['user_hash', 'source', 'period_start']),
+        ]
+
+class WellbeingAggregate(AbstractBaseModel):
+    user_hash = models.UUIDField(db_index=True, null=True, blank=True)  # Null for team aggregates
+    source = models.CharField(max_length=50, null=True, blank=True)  # 'overall', 'jira', 'chat', etc.
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    sentiment_weighted_avg = models.FloatField(default=0.0)  # Weighted sentiment score
+    stress_weighted_avg = models.FloatField(default=0.0)  # Weighted stress score
+    emotion_sadness_avg = models.FloatField(default=0.0)
+    emotion_joy_avg = models.FloatField(default=0.0)
+    emotion_love_avg = models.FloatField(default=0.0)
+    emotion_anger_avg = models.FloatField(default=0.0)
+    emotion_fear_avg = models.FloatField(default=0.0)
+    emotion_surprise_avg = models.FloatField(default=0.0)
+    message_count = models.IntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user_hash', 'period_start']),
+            models.Index(fields=['source', 'period_start']),
+        ]
+        unique_together = ('user_hash', 'source', 'period_start')
+
+    def __str__(self):
+        return f"Daily aggregate for {self.user_hash or 'team'} ({self.source or 'overall'})"
+    
