@@ -2,12 +2,13 @@
 Analytics service for wellbeing data processing.
 Separated business logic from views for better maintainability.
 """
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from core.models.user_model import User
 from core.models.channel_model import WellbeingAggregate, Channel
 from core.models.message_model import MessageAnalysis, Message
 from core.exceptions import AggregationError, ValidationError
-from django.db.models import Avg, Sum, Count, Q, QuerySet
+from django.db.models import Avg, Sum, Count, Q, QuerySet, Value, FloatField, IntegerField
+from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
 from typing import Dict, List, Any, Tuple, Optional
 from dataclasses import dataclass
@@ -58,6 +59,10 @@ def calculate_wellbeing_score(sentiment_avg, stress_avg, emotions):
     """Calculate a 0-10 wellbeing score based on metrics."""
     base_score = 5.0
     
+    # Convert to float to handle Decimal values
+    sentiment_avg = float(sentiment_avg) if sentiment_avg else 0.0
+    stress_avg = float(stress_avg) if stress_avg else 0.0
+    
     # Sentiment impact (-2 to +2)
     sentiment_impact = sentiment_avg * 2.0 if sentiment_avg else 0
     
@@ -107,12 +112,12 @@ def get_alert_level(wellbeing_score, stress_avg):
 def format_emotions_data(emotions_raw):
     """Format emotions data for frontend consumption."""
     return {
-        "joy": float(emotions_raw.get('joy', 0)),
-        "sadness": float(emotions_raw.get('sadness', 0)),
-        "anger": float(emotions_raw.get('anger', 0)),
-        "fear": float(emotions_raw.get('fear', 0)),
-        "love": float(emotions_raw.get('love', 0)),
-        "surprise": float(emotions_raw.get('surprise', 0))
+        "joy": float(emotions_raw.get('joy') or 0),
+        "sadness": float(emotions_raw.get('sadness') or 0),
+        "anger": float(emotions_raw.get('anger') or 0),
+        "fear": float(emotions_raw.get('fear') or 0),
+        "love": float(emotions_raw.get('love') or 0),
+        "surprise": float(emotions_raw.get('surprise') or 0)
     }
 
 def get_team_analytics(start_date=None, end_date=None):
@@ -145,15 +150,15 @@ def get_team_analytics(start_date=None, end_date=None):
         period_start__gte=start_date,
         period_end__lte=end_date
     ).aggregate(
-        sentiment_avg=Avg('sentiment_weighted_avg') or 0.0,
-        stress_avg=Avg('stress_weighted_avg') or 0.0,
-        joy_avg=Avg('emotion_joy_avg') or 0.0,
-        sadness_avg=Avg('emotion_sadness_avg') or 0.0,
-        anger_avg=Avg('emotion_anger_avg') or 0.0,
-        fear_avg=Avg('emotion_fear_avg') or 0.0,
-        love_avg=Avg('emotion_love_avg') or 0.0,
-        surprise_avg=Avg('emotion_surprise_avg') or 0.0,
-        total_messages=Sum('message_count') or 0
+        sentiment_avg=Coalesce(Avg('sentiment_weighted_avg'), Value(0.0), output_field=FloatField()),
+        stress_avg=Coalesce(Avg('stress_weighted_avg'), Value(0.0), output_field=FloatField()),
+        joy_avg=Coalesce(Avg('emotion_joy_avg'), Value(0.0), output_field=FloatField()),
+        sadness_avg=Coalesce(Avg('emotion_sadness_avg'), Value(0.0), output_field=FloatField()),
+        anger_avg=Coalesce(Avg('emotion_anger_avg'), Value(0.0), output_field=FloatField()),
+        fear_avg=Coalesce(Avg('emotion_fear_avg'), Value(0.0), output_field=FloatField()),
+        love_avg=Coalesce(Avg('emotion_love_avg'), Value(0.0), output_field=FloatField()),
+        surprise_avg=Coalesce(Avg('emotion_surprise_avg'), Value(0.0), output_field=FloatField()),
+        total_messages=Coalesce(Sum('message_count'), Value(0), output_field=IntegerField())
     )
     
     emotions_data = format_emotions_data({
@@ -172,12 +177,12 @@ def get_team_analytics(start_date=None, end_date=None):
     )
     
     result["team_overview"] = {
-        "sentiment_weighted_avg": float(team_data['sentiment_avg']),
-        "stress_weighted_avg": float(team_data['stress_avg']),
+        "sentiment_weighted_avg": float(team_data['sentiment_avg'] or 0),
+        "stress_weighted_avg": float(team_data['stress_avg'] or 0),
         "emotions": emotions_data,
         "message_count": team_data['total_messages'],
         "wellbeing_score": wellbeing_score,
-        "alert_level": get_alert_level(wellbeing_score, team_data['stress_avg'])
+        "alert_level": get_alert_level(wellbeing_score, team_data['stress_avg'] or 0)
     }
     
     # User Analytics (anonymized)

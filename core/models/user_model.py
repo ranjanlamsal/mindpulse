@@ -72,3 +72,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.username} ({self.role})"
     
+    @staticmethod
+    def get_hashed_id_by_username(username):
+        """
+        Retrieve the hashed_id for a given username.
+        
+        Args:
+            username (str): The username to look up.
+        
+        Returns:
+            UUID: The hashed_id of the user.
+        
+        Raises:
+            User.DoesNotExist: If no user with the given username exists.
+        """
+        user = User.objects.get(username=username)
+        return user.hashed_id

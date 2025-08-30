@@ -1,7 +1,7 @@
 """
 Input validation utilities for consistent data validation.
 """
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 from dateutil.parser import isoparse
 from django.utils import timezone
 from typing import Optional, Tuple, Dict, Any
@@ -28,7 +28,7 @@ class DateValidator:
         try:
             parsed_date = isoparse(date_str)
             if parsed_date.tzinfo is None:
-                parsed_date = parsed_date.replace(tzinfo=timezone.utc)
+                parsed_date = parsed_date.replace(tzinfo=dt_timezone.utc)
             return parsed_date
         except ValueError:
             raise ValidationError(

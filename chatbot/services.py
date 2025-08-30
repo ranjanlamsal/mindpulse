@@ -8,8 +8,8 @@ import logging
 from typing import Dict, List, Any, Optional, Tuple
 from django.conf import settings
 from django.utils import timezone
-from .models import Conversation, Message, ConversationContext, EmotionalSupportLog, UserPersonality
-from .memory_manager import EmotionalMemoryManager
+from chatbot.models import Conversation, Message, ConversationContext, EmotionalSupportLog, UserPersonality
+from chatbot.memory_manager import EmotionalMemoryManager
 from core.services.model_services import detect_sentiment, detect_emotion, detect_stress
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class EmotionalSupportChatbotService:
     
     def __init__(self, user):
         self.user = user
-        self.memory_manager = EmotionalMemoryManager(user)
+        self.memory_manager = EmotionalMemoryManager(user) if user else None
         self.model = settings.OPENAI_MODEL
         
     def process_user_message(self, conversation_id: int, message_content: str) -> Dict[str, Any]:
@@ -68,7 +68,8 @@ class EmotionalSupportChatbotService:
             }
             
         except Exception as e:
-            logger.error(f"Error processing message for user {self.user.id}: {str(e)}")
+            user_id = self.user.id if self.user else 'anonymous'
+            logger.error(f"Error processing message for user {user_id}: {str(e)}")
             return {
                 'error': 'Unable to process message at this time.',
                 'support_message': "I'm here to listen. Please feel free to share what's on your mind when you're ready."
@@ -79,6 +80,8 @@ class EmotionalSupportChatbotService:
         Get conversation history for a specific conversation.
         """
         try:
+            if not self.user:
+                return []  # No history for anonymous users
             conversation = Conversation.objects.get(id=conversation_id, user=self.user)
             messages = conversation.messages.order_by('created_at')[:limit]
             
@@ -101,6 +104,8 @@ class EmotionalSupportChatbotService:
         """
         List all conversations for the user.
         """
+        if not self.user:
+            return []  # No conversations for anonymous users
         conversations = Conversation.objects.filter(user=self.user).order_by('-updated_at')
         
         return [
@@ -125,13 +130,17 @@ class EmotionalSupportChatbotService:
         """
         if conversation_id:
             try:
-                return Conversation.objects.get(id=conversation_id, user=self.user)
+                if self.user:
+                    return Conversation.objects.get(id=conversation_id, user=self.user)
+                else:
+                    # For anonymous users, try to get conversation without user constraint
+                    return Conversation.objects.get(id=conversation_id)
             except Conversation.DoesNotExist:
                 pass
         
         # Create new conversation
         conversation = Conversation.objects.create(
-            user=self.user,
+            user=self.user,  # Can be None for anonymous users
             title=f"Emotional Support Chat - {timezone.now().strftime('%Y-%m-%d %H:%M')}"
         )
         
@@ -233,7 +242,7 @@ class EmotionalSupportChatbotService:
         """
         try:
             # Get conversation context
-            context = self.memory_manager.get_conversation_context(conversation.id)
+            context = self.memory_manager.get_conversation_context(conversation.id) if self.memory_manager else {}
             
             # Build system prompt for emotional support
             system_prompt = self._build_system_prompt(analysis, context)
@@ -435,7 +444,8 @@ CRISIS ALERT: The user is showing signs of high distress. Prioritize:
             'last_crisis_check': timezone.now() if analysis['crisis_level'] != 'none' else None
         }
         
-        self.memory_manager.update_conversation_context(conversation.id, **context_updates)
+        if self.memory_manager:
+            self.memory_manager.update_conversation_context(conversation.id, **context_updates)
         
         # Update conversation flags
         if analysis['crisis_level'] in ['high', 'critical']:
@@ -467,7 +477,7 @@ CRISIS ALERT: The user is showing signs of high distress. Prioritize:
         """
         EmotionalSupportLog.objects.create(
             conversation=conversation,
-            user=self.user,
+            user=self.user,  # Can be None for anonymous users
             action_type=support_type,
             action_description=f"Provided {support_type} support for {analysis['emotion']} emotion with {analysis['crisis_level']} crisis level"
         )
@@ -512,3 +522,4 @@ CRISIS ALERT: The user is showing signs of high distress. Prioritize:
             preview = last_message.content[:100]
             return preview + "..." if len(last_message.content) > 100 else preview
         return "No messages yet"
+    

@@ -1,5 +1,4 @@
 from django.urls import path, include
-from core.views.user_views import SignupView, LoginView
 from core.views.channel_views import ChannelListCreateView
 from core.views.message_views import MessageView, TeamWellbeingView
 from core.views.analytics_views import (
@@ -9,12 +8,6 @@ from core.views.analytics_views import (
     AlertsView,
     WellbeingTrendsView
 )
-
-# Authentication & Core APIs (Legacy - kept for backward compatibility)
-legacy_auth_patterns = [
-    path("signup/", SignupView.as_view(), name="signup-legacy"),
-    path("login/", LoginView.as_view(), name="login-legacy"),
-]
 
 # New JWT Authentication patterns
 from core.urls.auth_urls import urlpatterns as auth_urlpatterns
@@ -39,9 +32,6 @@ analytics_patterns = [
 urlpatterns = [
     # New JWT Authentication
     path("auth/", include(auth_urlpatterns)),
-    
-    # Legacy Authentication (backward compatibility)
-    *legacy_auth_patterns,
     
     # Data Ingestion
     *data_patterns,

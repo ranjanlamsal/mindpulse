@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from core.permissions import IsManagerOrAdmin
+from rest_framework.permissions import AllowAny
 from core.services.analytics_service import get_team_analytics, AnalyticsService
 from core.services.user_service import UserService
 from core.models.user_model import User
@@ -34,7 +35,8 @@ class TeamDashboardView(APIView):
     Comprehensive team analytics for management dashboard.
     GET /analytics/team-dashboard/
     """
-    permission_classes = [IsManagerOrAdmin]
+    # permission_classes = [IsManagerOrAdmin]
+    permission_classes = [AllowAny]
     
     def get(self, request):
         """Get team dashboard analytics with proper error handling."""
@@ -69,16 +71,24 @@ class TeamDashboardView(APIView):
 class UserWellbeingView(APIView):
     """
     Individual user wellbeing data (employees can see their own data)
-    GET /analytics/user-wellbeing/?user_hash=<uuid>
+    GET /analytics/user-wellbeing/?user_name=<username>
     """
     
     def get(self, request):
         try:
-            user_hash = request.query_params.get('user_hash')
-            if not user_hash:
+            user_name = request.query_params.get('user_name')
+            if not user_name:
                 return Response({
-                    "error": "user_hash parameter is required"
+                    "error": "user_name parameter is required"
                 }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Convert username to user_hash
+            try:
+                user_hash = User.get_hashed_id_by_username(user_name)
+            except User.DoesNotExist:
+                return Response({
+                    "error": f"User with username '{user_name}' not found"
+                }, status=status.HTTP_404_NOT_FOUND)
             
             # Parse date parameters
             start_date_str = request.query_params.get('start_date')
@@ -89,8 +99,8 @@ class UserWellbeingView(APIView):
             
             if start_date_str and end_date_str:
                 try:
-                    start_date = isoparse(start_date_str).replace(tzinfo=timezone.utc)
-                    end_date = isoparse(end_date_str).replace(tzinfo=timezone.utc)
+                    start_date = isoparse(start_date_str).replace(tzinfo=datetime.timezone.utc)
+                    end_date = isoparse(end_date_str).replace(tzinfo=datetime.timezone.utc)
                 except ValueError:
                     return Response({
                         "error": "Invalid date format. Use ISO 8601"
@@ -168,7 +178,8 @@ class UserWellbeingView(APIView):
             )
             
             response_data = {
-                "user_hash": user_hash,
+                "user_name": user_name,
+                "user_hash": str(user_hash),
                 "period": {
                     "start_date": start_date.isoformat(),
                     "end_date": end_date.isoformat(),
@@ -264,8 +275,8 @@ class ChannelComparisonView(APIView):
             
             if start_date_str and end_date_str:
                 try:
-                    start_date = isoparse(start_date_str).replace(tzinfo=timezone.utc)
-                    end_date = isoparse(end_date_str).replace(tzinfo=timezone.utc)
+                    start_date = isoparse(start_date_str).replace(tzinfo=datetime.timezone.utc)
+                    end_date = isoparse(end_date_str).replace(tzinfo=datetime.timezone.utc)
                 except ValueError:
                     return Response({
                         "error": "Invalid date format"

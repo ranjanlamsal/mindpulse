@@ -7,6 +7,8 @@ from core.models.channel_model import Channel
 
 
 class ChannelListCreateView(APIView):
+    authentication_classes = []
+    permission_classes = []
     def post(self, request):
         try:
             serializer = ChannelCreateSerializer(data = request.data)

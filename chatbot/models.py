@@ -104,7 +104,7 @@ class Conversation(AbstractBaseModel):
 
     id = models.BigIntegerField(primary_key=True, default=generate_secure_random_id, editable=False)
     title = models.CharField(max_length=255, default="Emotional Support Chat")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     favourite = models.BooleanField(default=False)
     archive = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
@@ -136,7 +136,8 @@ class Conversation(AbstractBaseModel):
         ]
 
     def __str__(self):
-        return f"Conversation {self.title} - {self.user.username}"
+        username = self.user.username if self.user else "Anonymous"
+        return f"Conversation {self.title} - {username}"
     
     def get_recent_context(self, limit=10):
         """Get recent messages for context"""
@@ -221,7 +222,7 @@ class EmotionalSupportLog(AbstractBaseModel):
     Log of emotional support actions taken during conversations.
     """
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='support_logs')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     action_type = models.CharField(
         max_length=50,
         choices=[
@@ -248,4 +249,5 @@ class EmotionalSupportLog(AbstractBaseModel):
         ]
     
     def __str__(self):
-        return f"{self.action_type} for {self.user.username}"
+        username = self.user.username if self.user else "Anonymous"
+        return f"{self.action_type} for {username}"

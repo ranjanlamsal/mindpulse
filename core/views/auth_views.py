@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 
-from core.serializers import (
+from core.serializers.user_serializers import (
     UserRegistrationSerializer, LoginSerializer, UserProfileSerializer,
     UserUpdateSerializer, PasswordChangeSerializer
 )
@@ -93,96 +93,6 @@ class UserRegistrationView(APIView):
             return APIResponseBuilder.error(
                 message="Registration failed",
                 errors=serializer.errors,
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-
-
-class UserProfileView(APIView):
-    """
-    View for getting and updating user profile.
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        """Get user profile."""
-        serializer = UserProfileSerializer(request.user)
-        return APIResponseBuilder.success(
-            data=serializer.data,
-            message="Profile retrieved successfully"
-        )
-
-    def patch(self, request):
-        """Update user profile."""
-        serializer = UserUpdateSerializer(
-            request.user, 
-            data=request.data, 
-            partial=True,
-            context={'request': request}
-        )
-        if serializer.is_valid():
-            serializer.save()
-            logger.info(f"User {request.user.username} updated profile")
-            return APIResponseBuilder.success(
-                data=serializer.data,
-                message="Profile updated successfully"
-            )
-        else:
-            return APIResponseBuilder.error(
-                message="Profile update failed",
-                errors=serializer.errors,
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-
-
-class ChangePasswordView(APIView):
-    """
-    View for changing user password.
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        serializer = PasswordChangeSerializer(
-            data=request.data,
-            context={'request': request}
-        )
-        if serializer.is_valid():
-            serializer.save()
-            
-            # Update session auth hash to prevent logout
-            update_session_auth_hash(request, request.user)
-            
-            logger.info(f"User {request.user.username} changed password")
-            return APIResponseBuilder.success(
-                message="Password changed successfully"
-            )
-        else:
-            return APIResponseBuilder.error(
-                message="Password change failed",
-                errors=serializer.errors,
-                status_code=status.HTTP_400_BAD_REQUEST
-            )
-
-
-class LogoutView(APIView):
-    """
-    Logout view that blacklists the refresh token.
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            
-            logger.info(f"User {request.user.username} logged out")
-            return APIResponseBuilder.success(
-                message="Logout successful"
-            )
-        except Exception as e:
-            logger.error(f"Logout error: {str(e)}")
-            return APIResponseBuilder.error(
-                message="Logout failed",
                 status_code=status.HTTP_400_BAD_REQUEST
             )
 

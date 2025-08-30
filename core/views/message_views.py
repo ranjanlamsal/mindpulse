@@ -14,7 +14,7 @@ from core.serializers.message_serializers import MessageIngestionSerializer
 from core.utils.response_builder import APIResponseBuilder, created_response, error_response
 from core.utils.validators import DateValidator
 import logging
-from datetime import datetime, timezone
+import datetime
 from dateutil.parser import isoparse
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,8 @@ class MessageView(APIView):
     Handle message ingestion from external services.
     Supports both single messages and batch processing.
     """
+    authentication_classes = []
+    permission_classes = []
     
     def post(self, request):
         """
@@ -118,8 +120,8 @@ class TeamWellbeingView(APIView):
 
             # Parse and validate dates
             try:
-                start_date = isoparse(start_date_str).replace(tzinfo=timezone.utc) if start_date_str else None
-                end_date = isoparse(end_date_str).replace(tzinfo=timezone.utc) if end_date_str else None
+                start_date = isoparse(start_date_str).replace(tzinfo=datetime.timezone.utc) if start_date_str else None
+                end_date = isoparse(end_date_str).replace(tzinfo=datetime.timezone.utc) if end_date_str else None
             except ValueError:
                 return Response({"error": "Invalid date format. Use ISO 8601 (e.g., 2025-08-30T00:00:00Z)"}, status=status.HTTP_400_BAD_REQUEST)
 

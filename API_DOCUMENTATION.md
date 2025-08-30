@@ -1,563 +1,730 @@
 # MindPulse API Documentation
 
 ## Overview
-MindPulse is an employee wellbeing analytics platform that analyzes messages from various channels (Discord, Meetings, Jira, Chat) to provide wellbeing insights.
+MindPulse is a comprehensive wellbeing analytics platform that processes messages from various communication channels (Discord, Teams, Jira, etc.) and provides AI-powered sentiment analysis, emotional state detection, and team wellbeing insights.
 
-## Base URL
+**Base URL:** `http://your-domain.com/api/`
+
+## Authentication
+The API uses JWT (JSON Web Token) authentication. Include the access token in the Authorization header:
 ```
-http://localhost:8000/
+Authorization: Bearer <access_token>
 ```
 
-## Data Structure Standards
+## Response Format
+All API responses follow a consistent format:
 
-### Wellbeing Score
-- **Range**: 0-10 (higher is better)
-- **10**: Excellent wellbeing
-- **7-9**: Good wellbeing  
-- **5-6**: Moderate wellbeing
-- **3-4**: Poor wellbeing
-- **0-2**: Critical wellbeing
+### Success Response
+```json
+{
+  "data": {},
+  "message": "Success message",
+  "timestamp": "2025-08-30T19:00:00Z",
+  "success": true
+}
+```
 
-### Alert Levels
-- `excellent`: Wellbeing score > 7, low stress
-- `normal`: Average wellbeing indicators
-- `warning`: Wellbeing score < 5 or elevated stress
-- `critical`: Wellbeing score < 3 or high stress
-
-### Trend Indicators
-- `improving`: Score increased > 5% from previous period
-- `declining`: Score decreased > 5% from previous period
-- `stable`: Within ±5% range
-- `new`: No previous data available
+### Error Response
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "error_code": "ERROR_CODE",
+  "errors": {},
+  "timestamp": "2025-08-30T19:00:00Z"
+}
+```
 
 ---
 
-## 🔐 Authentication APIs
+## 🔐 Authentication Endpoints
 
-### 1. User Signup
-```http
-POST /signup/
-```
+### 1. User Registration
+**POST** `/auth/register/`
+
+Register a new user (employees only).
 
 **Request Body:**
 ```json
 {
   "username": "john_doe",
   "email": "john@company.com",
-  "password": "secure_password",
-  "role": "employee"  // "employee", "manager", "admin"
+  "password": "SecurePassword123!",
+  "password_confirm": "SecurePassword123!",
+  "role": "employee"
 }
 ```
 
-**Response:**
+**Response (201 Created):**
 ```json
 {
-  "message": "User created successfully",
-  "username": "john_doe"
+  "data": {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "user": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@company.com",
+      "role": "employee",
+      "hashed_id": "550e8400-e29b-41d4-a716-446655440000",
+      "created_at": "2025-08-30T10:00:00Z",
+      "is_active": true,
+      "last_login_at": null,
+      "message_count": 0,
+      "last_activity": null
+    }
+  },
+  "message": "Registration successful",
+  "success": true,
+  "timestamp": "2025-08-30T10:00:00Z"
 }
 ```
 
 ### 2. User Login
-```http
-POST /login/
-```
+**POST** `/auth/login/`
+
+Authenticate user and receive JWT tokens.
 
 **Request Body:**
 ```json
 {
   "username": "john_doe",
-  "password": "secure_password"
+  "password": "SecurePassword123!"
 }
 ```
 
-**Response:**
+**Response (200 OK):**
 ```json
 {
+  "data": {
+    "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "user": {
+      "id": 1,
+      "username": "john_doe",
+      "email": "john@company.com",
+      "role": "employee",
+      "hashed_id": "550e8400-e29b-41d4-a716-446655440000",
+      "created_at": "2025-08-30T10:00:00Z",
+      "is_active": true,
+      "last_login_at": "2025-08-30T15:30:00Z",
+      "message_count": 42,
+      "last_activity": "2025-08-30T14:45:00Z"
+    }
+  },
   "message": "Login successful",
-  "username": "john_doe",
-  "role": "employee",
-  "user_hash": "550e8400-e29b-41d4-a716-446655440000"
+  "success": true,
+  "timestamp": "2025-08-30T15:30:00Z"
 }
 ```
+
+### 3. Token Refresh
+**POST** `/auth/token/refresh/`
+
+Refresh access token using refresh token.
+
+**Request Body:**
+```json
+{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+### 4. Role-based Dashboards
+**GET** `/auth/dashboard/employee/` (🔒 Employee+)
+**GET** `/auth/dashboard/manager/` (🔒 Manager+)  
+**GET** `/auth/dashboard/admin/` (🔒 Admin only)
+
+Get role-specific dashboard data.
 
 ---
 
-## 📊 Data Ingestion APIs
+## 📊 Data Ingestion Endpoints
 
-### 3. Create Channel
-```http
-POST /channels/
-```
+### 1. Create/Get Channel
+**POST** `/channels/`
+
+Create or retrieve a communication channel.
 
 **Request Body:**
 ```json
 {
-  "name": "General Chat",
-  "type": "discord",  // "discord", "meeting", "jira", "chat"
-  "external_id": "channel_12345",
-  "is_active": true
+  "name": "General Discussion",
+  "type": "discord",
+  "external_id": "discord_123456789"
 }
 ```
 
-### 4. Ingest Messages
-```http
-POST /messages/
-```
-
-**Single Message:**
+**Response (201 Created / 200 OK):**
 ```json
 {
-  "channel": {
-    "name": "General Chat",
-    "type": "discord",
-    "external_id": "channel_12345"
-  },
-  "user_hash": "550e8400-e29b-41d4-a716-446655440000",
-  "message": "I'm feeling stressed about the deadline",
-  "external_ref": "msg_67890"
+  "message": "Channel Created Successfully",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "General Discussion",
+    "external_id": "discord_123456789",
+    "type": "discord"
+  }
 }
 ```
 
-**Batch Messages (for meetings):**
+**Channel Types:**
+- `discord` - Discord channels
+- `meeting` - Meeting transcripts
+- `jira` - Jira comments
+- `chat` - General chat applications
+
+### 2. Message Ingestion
+**POST** `/messages/`
+
+Ingest messages for analysis. Accepts single message or array of messages.
+
+**Request Body (Single Message):**
+```json
+{
+  "channel_id": "550e8400-e29b-41d4-a716-446655440000",
+  "external_ref": "msg-123456",
+  "username": "john_doe",
+  "message": "I'm feeling overwhelmed with the current project deadline."
+}
+```
+
+**Request Body (Multiple Messages):**
 ```json
 [
   {
-    "channel": {
-      "name": "Team Standup",
-      "type": "meeting",
-      "external_id": "meet_123"
-    },
-    "user_hash": "user_uuid_1",
-    "message": "I'm concerned about our progress",
-    "external_ref": "meet_123_chunk_1"
+    "channel_id": "550e8400-e29b-41d4-a716-446655440000",
+    "external_ref": "msg-123456",
+    "username": "john_doe",
+    "message": "I'm feeling overwhelmed with the current project deadline."
   },
   {
-    "channel": {
-      "name": "Team Standup", 
-      "type": "meeting",
-      "external_id": "meet_123"
-    },
-    "user_hash": "user_uuid_2",
-    "message": "Let's discuss solutions",
-    "external_ref": "meet_123_chunk_2"
+    "channel_id": "550e8400-e29b-41d4-a716-446655440000",
+    "external_ref": "msg-123457",
+    "username": "jane_smith",
+    "message": "Great work on the presentation today, team!"
   }
 ]
 ```
 
----
-
-## 📈 Analytics & Dashboard APIs
-
-### 5. Team Dashboard (Main Management View)
-```http
-GET /analytics/team-dashboard/
-```
-
-**Query Parameters:**
-- `start_date` (optional): ISO 8601 date (e.g., `2025-08-01T00:00:00Z`)
-- `end_date` (optional): ISO 8601 date
-
-**Response:**
+**Response (201 Created / 207 Multi-Status):**
 ```json
 {
-  "period": {
-    "start_date": "2025-08-01T00:00:00Z",
-    "end_date": "2025-08-30T23:59:59Z",
-    "calculated_at": "2025-08-30T13:45:23Z"
-  },
-  "team_overview": {
-    "sentiment_weighted_avg": 0.25,
-    "stress_weighted_avg": 0.15,
-    "emotions": {
-      "joy": 0.35,
-      "sadness": 0.20,
-      "anger": 0.10,
-      "fear": 0.12,
-      "love": 0.18,
-      "surprise": 0.05
-    },
-    "message_count": 1547,
-    "wellbeing_score": 7.2,
-    "alert_level": "normal"
-  },
-  "user_analytics": [
-    {
-      "user_id": "user_001",
-      "sentiment_weighted_avg": 0.45,
-      "stress_weighted_avg": 0.05,
-      "emotions": {
-        "joy": 0.60,
-        "sadness": 0.10,
-        "anger": 0.05,
-        "fear": 0.05,
-        "love": 0.15,
-        "surprise": 0.05
+  "data": {
+    "processed_messages": [
+      {
+        "message_id": "msg-uuid-1",
+        "external_ref": "msg-123456",
+        "status": "queued_for_analysis"
       },
-      "message_count": 23,
-      "wellbeing_score": 8.5,
-      "trend": "improving",
-      "alert_level": "excellent"
+      {
+        "external_ref": "msg-123457",
+        "status": "failed",
+        "error": "User with username 'unknown_user' not found."
+      }
+    ],
+    "summary": {
+      "total_messages": 2,
+      "successful": 1,
+      "failed": 1
     }
-  ],
-  "channel_analytics": [
-    {
-      "source": "discord",
-      "sentiment_weighted_avg": 0.30,
-      "stress_weighted_avg": 0.20,
-      "emotions": {
-        "joy": 0.40,
-        "sadness": 0.25,
-        "anger": 0.15,
-        "fear": 0.10,
-        "love": 0.08,
-        "surprise": 0.02
-      },
-      "message_count": 456,
-      "active_users": 12,
-      "wellbeing_score": 6.8,
-      "alert_level": "normal"
-    }
-  ],
-  "alerts": [
-    {
-      "type": "critical_wellbeing",
-      "severity": "high",
-      "message": "2 employees showing critical wellbeing indicators",
-      "count": 2,
-      "action_required": true
-    }
-  ]
+  },
+  "message": "Processed 1/2 messages successfully",
+  "success": true,
+  "timestamp": "2025-08-30T16:00:00Z"
 }
 ```
 
-### 6. Individual User Wellbeing
-```http
-GET /analytics/user-wellbeing/?user_hash={user_hash}
-```
+**Message Processing Status:**
+- `queued_for_analysis` - Successfully ingested, queued for ML analysis
+- `failed` - Failed to process (with error details)
 
-**Response:**
+---
+
+## 📈 Analytics Endpoints
+
+### 1. Team Dashboard
+**GET** `/analytics/team-dashboard/`
+
+Get comprehensive team analytics for management dashboard.
+
+**Query Parameters:**
+- `start_date` (optional): ISO 8601 date (e.g., `2025-08-01T00:00:00Z`)
+- `end_date` (optional): ISO 8601 date (e.g., `2025-08-30T23:59:59Z`)
+
+**Default:** Last 30 days if no dates provided
+
+**Response (200 OK):**
 ```json
 {
+  "data": {
+    "period": {
+      "start_date": "2025-08-01T00:00:00Z",
+      "end_date": "2025-08-30T23:59:59Z",
+      "calculated_at": "2025-08-30T16:00:00Z"
+    },
+    "team_overview": {
+      "sentiment_weighted_avg": 0.65,
+      "stress_weighted_avg": 0.32,
+      "emotions": {
+        "joy": 0.45,
+        "sadness": 0.15,
+        "anger": 0.08,
+        "fear": 0.12,
+        "love": 0.25,
+        "surprise": 0.18
+      },
+      "message_count": 1247,
+      "wellbeing_score": 7.2,
+      "alert_level": "normal"
+    },
+    "user_analytics": [
+      {
+        "user_id": "user_001",
+        "sentiment_weighted_avg": 0.72,
+        "stress_weighted_avg": 0.28,
+        "emotions": {
+          "joy": 0.52,
+          "sadness": 0.12,
+          "anger": 0.05,
+          "fear": 0.08,
+          "love": 0.28,
+          "surprise": 0.15
+        },
+        "message_count": 156,
+        "wellbeing_score": 7.8,
+        "trend": "improving",
+        "alert_level": "normal"
+      }
+    ],
+    "channel_analytics": [
+      {
+        "source": "discord",
+        "sentiment_weighted_avg": 0.68,
+        "stress_weighted_avg": 0.35,
+        "emotions": {
+          "joy": 0.42,
+          "sadness": 0.18,
+          "anger": 0.10,
+          "fear": 0.15,
+          "love": 0.22,
+          "surprise": 0.20
+        },
+        "message_count": 523,
+        "active_users": 15,
+        "wellbeing_score": 6.9,
+        "alert_level": "normal"
+      }
+    ],
+    "trends": {},
+    "alerts": []
+  },
+  "message": "Team analytics retrieved successfully",
+  "success": true,
+  "timestamp": "2025-08-30T16:00:00Z"
+}
+```
+
+**Wellbeing Score:** 0-10 scale (0=Poor, 10=Excellent)
+**Alert Levels:** `excellent`, `normal`, `warning`, `critical`
+**Trends:** `improving`, `stable`, `declining`, `new`
+
+### 2. User Wellbeing
+**GET** `/analytics/user-wellbeing/`
+
+Get individual user wellbeing data.
+
+**Query Parameters:**
+- `user_name` (required): Username to analyze
+- `start_date` (optional): ISO 8601 date
+- `end_date` (optional): ISO 8601 date
+
+**Response (200 OK):**
+```json
+{
+  "user_name": "john_doe",
   "user_hash": "550e8400-e29b-41d4-a716-446655440000",
   "period": {
     "start_date": "2025-08-01T00:00:00Z",
     "end_date": "2025-08-30T23:59:59Z",
-    "calculated_at": "2025-08-30T13:45:23Z"
+    "calculated_at": "2025-08-30T16:00:00Z"
   },
   "overall_metrics": {
-    "sentiment_weighted_avg": 0.35,
-    "stress_weighted_avg": 0.25,
+    "sentiment_weighted_avg": 0.72,
+    "stress_weighted_avg": 0.28,
     "emotions": {
-      "joy": 0.40,
-      "sadness": 0.20,
-      "anger": 0.15,
-      "fear": 0.10,
-      "love": 0.12,
-      "surprise": 0.03
+      "joy": 0.52,
+      "sadness": 0.12,
+      "anger": 0.05,
+      "fear": 0.08,
+      "love": 0.28,
+      "surprise": 0.15
     },
-    "message_count": 145,
-    "wellbeing_score": 6.8
+    "message_count": 156,
+    "wellbeing_score": 7.8
   },
   "daily_trends": [
     {
-      "date": "2025-08-29T00:00:00Z",
-      "sentiment": 0.4,
-      "stress": 0.2,
-      "emotions": { "joy": 0.5, "sadness": 0.1, "anger": 0.05, "fear": 0.05, "love": 0.25, "surprise": 0.05 },
-      "message_count": 12,
-      "wellbeing_score": 7.2
+      "date": "2025-08-30T00:00:00Z",
+      "sentiment": 0.75,
+      "stress": 0.25,
+      "emotions": {
+        "joy": 0.55,
+        "sadness": 0.10,
+        "anger": 0.05,
+        "fear": 0.05,
+        "love": 0.30,
+        "surprise": 0.12
+      },
+      "message_count": 8,
+      "wellbeing_score": 8.1
     }
   ],
   "channel_breakdown": [
     {
       "source": "discord",
-      "sentiment": 0.3,
-      "stress": 0.3,
-      "emotions": { "joy": 0.35, "sadness": 0.25, "anger": 0.20, "fear": 0.10, "love": 0.08, "surprise": 0.02 },
+      "sentiment": 0.78,
+      "stress": 0.22,
+      "emotions": {
+        "joy": 0.58,
+        "sadness": 0.08,
+        "anger": 0.02,
+        "fear": 0.05,
+        "love": 0.32,
+        "surprise": 0.18
+      },
       "message_count": 89,
-      "wellbeing_score": 6.2
+      "wellbeing_score": 8.3
     }
   ]
 }
 ```
 
-### 7. Channel Comparison
-```http
-GET /analytics/channel-comparison/
-```
+### 3. Channel Comparison
+**GET** `/analytics/channel-comparison/`
 
-**Response:**
+Compare wellbeing metrics across different communication channels.
+
+**Query Parameters:**
+- `start_date` (optional): ISO 8601 date
+- `end_date` (optional): ISO 8601 date
+
+**Default:** Last 7 days
+
+**Response (200 OK):**
 ```json
 {
   "period": {
-    "start_date": "2025-08-24T00:00:00Z",
-    "end_date": "2025-08-30T23:59:59Z",
-    "calculated_at": "2025-08-30T13:45:23Z"
+    "start_date": "2025-08-23T00:00:00Z",
+    "end_date": "2025-08-30T23:59:59Z"
   },
-  "channels": [
+  "channel_stats": [
     {
       "source": "discord",
-      "sentiment_weighted_avg": 0.30,
-      "stress_weighted_avg": 0.20,
-      "emotions": {
-        "joy": 0.40,
-        "sadness": 0.25,
-        "anger": 0.15,
-        "fear": 0.10,
-        "love": 0.08,
-        "surprise": 0.02
+      "sentiment_avg": 0.68,
+      "stress_avg": 0.35,
+      "emotion_averages": {
+        "joy": 0.42,
+        "sadness": 0.18,
+        "anger": 0.10,
+        "fear": 0.15,
+        "love": 0.22,
+        "surprise": 0.20
       },
-      "total_messages": 456,
-      "active_users": 12,
-      "avg_messages_per_user": 38.0,
-      "wellbeing_score": 6.8,
-      "alert_level": "normal"
+      "total_messages": 523,
+      "active_users": 15,
+      "wellbeing_score": 6.9
     },
     {
       "source": "meeting",
-      "sentiment_weighted_avg": 0.20,
-      "stress_weighted_avg": 0.10,
-      "emotions": {
-        "joy": 0.30,
-        "sadness": 0.15,
-        "anger": 0.08,
-        "fear": 0.15,
-        "love": 0.22,
-        "surprise": 0.10
+      "sentiment_avg": 0.72,
+      "stress_avg": 0.28,
+      "emotion_averages": {
+        "joy": 0.38,
+        "sadness": 0.12,
+        "anger": 0.05,
+        "fear": 0.18,
+        "love": 0.15,
+        "surprise": 0.25
       },
-      "total_messages": 89,
-      "active_users": 8,
-      "avg_messages_per_user": 11.1,
-      "wellbeing_score": 7.5,
-      "alert_level": "excellent"
+      "total_messages": 187,
+      "active_users": 22,
+      "wellbeing_score": 7.4
     }
   ]
 }
 ```
 
-### 8. Alerts & Notifications
-```http
-GET /analytics/alerts/
-```
+### 4. Alerts
+**GET** `/analytics/alerts/`
 
-**Response:**
-```json
-{
-  "timestamp": "2025-08-30T13:45:23Z",
-  "alerts": [
-    {
-      "type": "critical_wellbeing",
-      "severity": "high",
-      "message": "2 employees showing critical wellbeing indicators",
-      "count": 2,
-      "action_required": true
-    },
-    {
-      "type": "elevated_stress",
-      "severity": "medium",
-      "message": "5 employees showing elevated stress levels",
-      "count": 5,
-      "action_required": false
-    },
-    {
-      "type": "low_engagement",
-      "severity": "medium",
-      "message": "3 employees showing low communication engagement",
-      "count": 3,
-      "action_required": false
-    }
-  ],
-  "summary": {
-    "total_alerts": 3,
-    "high_severity": 1,
-    "medium_severity": 2,
-    "requires_action": 1
-  }
-}
-```
-
-### 9. Wellbeing Trends
-```http
-GET /analytics/trends/?period=week|month|quarter
-```
+Get wellbeing alerts for users who may need attention.
 
 **Query Parameters:**
-- `period`: `week` (7 days), `month` (30 days), `quarter` (90 days)
+- `severity` (optional): `critical`, `warning`, `all` (default: `all`)
+- `limit` (optional): Number of alerts to return (default: 50)
 
-**Response:**
+**Response (200 OK):**
 ```json
 {
-  "period": "month",
-  "interval": "day",
-  "start_date": "2025-08-01T00:00:00Z",
-  "end_date": "2025-08-30T23:59:59Z",
-  "trends": [
-    {
-      "date": "2025-08-01T00:00:00Z",
-      "sentiment": 0.25,
-      "stress": 0.30,
-      "emotions": {
-        "joy": 0.35,
-        "sadness": 0.25,
-        "anger": 0.15,
-        "fear": 0.12,
-        "love": 0.10,
-        "surprise": 0.03
+  "data": {
+    "alerts": [
+      {
+        "user_id": "user_005",
+        "alert_type": "low_wellbeing",
+        "severity": "critical",
+        "wellbeing_score": 2.1,
+        "stress_level": 0.89,
+        "message": "User showing signs of severe stress and low wellbeing",
+        "detected_at": "2025-08-30T14:30:00Z",
+        "metrics": {
+          "sentiment_avg": -0.65,
+          "stress_avg": 0.89,
+          "recent_message_count": 45
+        }
+      }
+    ],
+    "summary": {
+      "total_alerts": 3,
+      "critical": 1,
+      "warning": 2
+    }
+  },
+  "message": "Alerts retrieved successfully",
+  "success": true
+}
+```
+
+### 5. Wellbeing Trends
+**GET** `/analytics/trends/`
+
+Get wellbeing trends over time.
+
+**Query Parameters:**
+- `period` (optional): `daily`, `weekly`, `monthly` (default: `weekly`)
+- `metric` (optional): `wellbeing_score`, `sentiment`, `stress`, `all` (default: `all`)
+- `start_date` (optional): ISO 8601 date
+- `end_date` (optional): ISO 8601 date
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "period_type": "weekly",
+    "metric": "wellbeing_score",
+    "trends": [
+      {
+        "period_start": "2025-08-01T00:00:00Z",
+        "period_end": "2025-08-07T23:59:59Z",
+        "wellbeing_score": 6.8,
+        "sentiment_avg": 0.62,
+        "stress_avg": 0.38,
+        "message_count": 234,
+        "active_users": 18
       },
-      "message_count": 234,
-      "wellbeing_score": 6.2
+      {
+        "period_start": "2025-08-08T00:00:00Z",
+        "period_end": "2025-08-14T23:59:59Z",
+        "wellbeing_score": 7.2,
+        "sentiment_avg": 0.68,
+        "stress_avg": 0.32,
+        "message_count": 287,
+        "active_users": 21
+      }
+    ],
+    "analysis": {
+      "trend_direction": "improving",
+      "change_percentage": 5.9,
+      "key_insights": [
+        "Wellbeing scores have improved by 5.9% over the period",
+        "Stress levels decreased while positive sentiment increased"
+      ]
     }
-  ]
+  },
+  "message": "Trends retrieved successfully",
+  "success": true
 }
 ```
 
 ---
 
-## 🎨 Frontend Implementation Guide
+## 🤖 Chatbot Endpoints
 
-### Dashboard Components
+### 1. Chat with Bot
+**POST** `/chatbot/chat/`
 
-#### 1. **Executive Summary Card**
-```javascript
-// Data source: /analytics/team-dashboard/
-const summaryData = {
-  wellbeingScore: 7.2,
-  totalMessages: 1547,
-  alertLevel: "normal",
-  trend: "improving"
-}
-```
+Send message to the emotional support chatbot.
 
-#### 2. **Team Wellbeing Gauge**
-```javascript
-// Circular gauge showing team wellbeing score (0-10)
-const gaugeConfig = {
-  value: teamOverview.wellbeing_score,
-  min: 0,
-  max: 10,
-  colors: {
-    critical: '#ff4444',  // 0-3
-    warning: '#ffaa00',   // 3-5  
-    normal: '#44aa44',    // 5-7
-    excellent: '#00aa44'  // 7-10
-  }
-}
-```
+**Authentication Required:** ✅
 
-#### 3. **Emotion Radar Chart**
-```javascript
-// Data source: team_overview.emotions
-const radarData = {
-  labels: ['Joy', 'Love', 'Surprise', 'Sadness', 'Anger', 'Fear'],
-  datasets: [{
-    data: [emotions.joy, emotions.love, emotions.surprise, emotions.sadness, emotions.anger, emotions.fear]
-  }]
-}
-```
-
-#### 4. **Channel Comparison Bar Chart**
-```javascript
-// Data source: channel_analytics
-const channelChart = {
-  labels: channelAnalytics.map(c => c.source),
-  datasets: [
-    {
-      label: 'Wellbeing Score',
-      data: channelAnalytics.map(c => c.wellbeing_score),
-      backgroundColor: channelAnalytics.map(c => getColorByAlertLevel(c.alert_level))
-    }
-  ]
-}
-```
-
-#### 5. **User Distribution Histogram**
-```javascript
-// Data source: user_analytics
-const distributionData = {
-  excellent: userAnalytics.filter(u => u.wellbeing_score >= 7).length,
-  good: userAnalytics.filter(u => u.wellbeing_score >= 5 && u.wellbeing_score < 7).length,
-  poor: userAnalytics.filter(u => u.wellbeing_score >= 3 && u.wellbeing_score < 5).length,
-  critical: userAnalytics.filter(u => u.wellbeing_score < 3).length
-}
-```
-
-#### 6. **Trend Line Chart**
-```javascript
-// Data source: /analytics/trends/?period=month
-const trendChart = {
-  labels: trendsData.trends.map(t => new Date(t.date).toLocaleDateString()),
-  datasets: [
-    {
-      label: 'Team Wellbeing',
-      data: trendsData.trends.map(t => t.wellbeing_score),
-      borderColor: '#007bff',
-      fill: false
-    }
-  ]
-}
-```
-
-#### 7. **Alert Panel**
-```javascript
-// Data source: /analytics/alerts/
-const alertComponents = alerts.map(alert => ({
-  type: alert.type,
-  severity: alert.severity,
-  message: alert.message,
-  actionRequired: alert.action_required,
-  color: getSeverityColor(alert.severity)
-}))
-```
-
-### Color Schemes
-```css
-:root {
-  --wellbeing-critical: #dc3545;
-  --wellbeing-warning: #ffc107;
-  --wellbeing-normal: #28a745;
-  --wellbeing-excellent: #007bff;
-  
-  --emotion-joy: #ffd700;
-  --emotion-love: #ff69b4;
-  --emotion-surprise: #9370db;
-  --emotion-sadness: #4682b4;
-  --emotion-anger: #dc143c;
-  --emotion-fear: #696969;
-}
-```
-
-### Recommended Refresh Intervals
-- **Team Dashboard**: 5 minutes
-- **Alerts**: 2 minutes
-- **Individual User Data**: 10 minutes
-- **Trends**: 1 hour
-
----
-
-## 🔧 Error Handling
-
-All APIs return consistent error responses:
-
+**Request Body:**
 ```json
 {
-  "error": "Error description",
-  "details": "Additional error context (optional)"
+  "message": "I'm feeling really stressed about the upcoming deadline",
+  "conversation_id": 123
 }
 ```
 
-**Common HTTP Status Codes:**
-- `200`: Success
-- `400`: Bad Request (invalid parameters)
-- `401`: Unauthorized
-- `403`: Forbidden (insufficient permissions)
-- `500`: Internal Server Error
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "response": "I understand that deadlines can feel overwhelming. It's completely normal to feel stressed in these situations. Have you considered breaking down the tasks into smaller, manageable steps?",
+    "conversation_id": 123,
+    "emotions_detected": ["stress", "anxiety"],
+    "crisis_level": "low",
+    "support_suggestions": [
+      "Take regular breaks",
+      "Practice deep breathing exercises",
+      "Consider speaking with your manager about workload"
+    ]
+  },
+  "message": "Response generated successfully",
+  "success": true,
+  "timestamp": "2025-08-30T16:30:00Z"
+}
+```
+
+### 2. Conversation List
+**GET** `/chatbot/conversations/`
+
+Get list of user's conversations with the chatbot.
+
+**Authentication Required:** ✅
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "conversations": [
+      {
+        "id": 123,
+        "title": "Stress Management Discussion",
+        "status": "active",
+        "created_at": "2025-08-30T10:00:00Z",
+        "updated_at": "2025-08-30T16:30:00Z",
+        "favourite": false,
+        "archive": false,
+        "follow_up_needed": true,
+        "crisis_flags": 0,
+        "last_message_preview": "I understand that deadlines can feel overwhelming..."
+      }
+    ],
+    "total_count": 5,
+    "active_conversations": 2
+  },
+  "message": "Conversations retrieved successfully",
+  "success": true
+}
+```
+
+### 3. Conversation History
+**GET** `/chatbot/conversations/<conversation_id>/messages/`
+
+Get message history for a specific conversation.
+
+**Authentication Required:** ✅
+
+**Response (200 OK):**
+```json
+{
+  "data": {
+    "conversation_id": 123,
+    "messages": [
+      {
+        "id": 1,
+        "content": "I'm feeling really stressed about the upcoming deadline",
+        "is_from_user": true,
+        "emotions": ["stress", "anxiety"],
+        "crisis_level": "low",
+        "support_request": false,
+        "created_at": "2025-08-30T16:25:00Z"
+      },
+      {
+        "id": 2,
+        "content": "I understand that deadlines can feel overwhelming...",
+        "is_from_user": false,
+        "emotions": null,
+        "crisis_level": "none",
+        "support_request": false,
+        "created_at": "2025-08-30T16:30:00Z"
+      }
+    ],
+    "total_messages": 2
+  },
+  "message": "Conversation history retrieved successfully",
+  "success": true
+}
+```
 
 ---
 
-## 📝 Development Notes
+## 🛡️ Admin Endpoints
 
-1. **Date Formats**: All dates use ISO 8601 format with UTC timezone
-2. **User Privacy**: User IDs are anonymized as `user_001`, `user_002`, etc.
-3. **Real-time Updates**: Consider WebSocket integration for live dashboard updates
-4. **Caching**: Analytics data is computed, consider caching for 5-10 minutes
-5. **Pagination**: Not implemented yet, but recommended for user lists > 100 items
+All admin endpoints are accessible through Django's admin interface:
+
+**Admin URL:** `/admin/`
+
+### Available Admin Models:
+- **Users:** Manage user accounts, roles, and permissions
+- **Channels:** View and manage communication channels
+- **Messages:** View ingested messages and their analysis
+- **Message Analysis:** View AI analysis results
+- **Wellbeing Aggregates:** View calculated wellbeing metrics
+- **Conversations:** View chatbot conversations
+- **Chatbot Messages:** View individual chatbot interactions
+
+---
+
+## 🔍 Error Codes
+
+| Code | Description |
+|------|-------------|
+| `VALIDATION_ERROR` | Request validation failed |
+| `AUTHENTICATION_ERROR` | Authentication credentials invalid/missing |
+| `AUTHORIZATION_ERROR` | Insufficient permissions |
+| `NOT_FOUND` | Requested resource not found |
+| `INTERNAL_ERROR` | Server internal error |
+| `RATE_LIMIT_EXCEEDED` | Too many requests |
+
+---
+
+## 📝 Rate Limits
+
+- **Authentication endpoints:** 5 requests per minute per IP
+- **Message ingestion:** 100 requests per minute per user
+- **Analytics endpoints:** 60 requests per minute per user
+- **Chatbot endpoints:** 30 requests per minute per user
+
+---
+
+## 🚀 Getting Started
+
+1. **Register** a new employee account using `/auth/register/`
+2. **Login** to get access tokens using `/auth/login/`
+3. **Create channels** for your communication platforms using `/channels/`
+4. **Ingest messages** for analysis using `/messages/`
+5. **View analytics** using various `/analytics/` endpoints
+6. **Chat with the bot** for emotional support using `/chatbot/chat/`
+
+---
+
+## 📊 ML Analysis Features
+
+The system automatically analyzes ingested messages for:
+
+- **Sentiment Analysis:** Positive, negative, neutral sentiment detection
+- **Emotion Detection:** Joy, sadness, anger, fear, love, surprise
+- **Stress Level Detection:** Binary stress/no-stress classification with confidence scores
+- **Wellbeing Scoring:** 0-10 composite wellbeing score
+- **Trend Analysis:** Temporal wellbeing trend detection
+- **Alert Generation:** Automatic alerts for users needing attention
+
+All analysis happens asynchronously using Celery task queues for optimal performance.

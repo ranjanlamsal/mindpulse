@@ -18,7 +18,7 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['*']
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -42,6 +42,7 @@ CSRF_COOKIE_HTTPONLY = True
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'django_celery_beat',
     'core',
     'chatbot',
@@ -58,6 +60,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -310,3 +313,46 @@ OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
 CHATBOT_SHORT_TERM_MEMORY_LIMIT = 20
 CHATBOT_LONG_TERM_IMPORTANCE_THRESHOLD = 0.7
 CHATBOT_MAX_CONTEXT_MESSAGES = 10
+
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite default
+    "http://127.0.0.1:5173",  # Vite default
+    "http://localhost:8080",  # Vue default
+    "http://127.0.0.1:8080",  # Vue default
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]

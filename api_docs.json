@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "mindpulse-api-collection",
-		"name": "MindPulse API - Employee Wellbeing Platform",
-		"description": "Complete API documentation for MindPulse - an employee wellbeing analytics platform with emotional support chatbot.\n\n## Features:\n- JWT Token-based Authentication\n- Role-based Access Control (Employee/Manager/Admin)\n- Message Analytics with ML-powered sentiment analysis\n- Emotional Support Chatbot with OpenAI integration\n- Memory management and crisis detection\n\n## Base URL: `http://localhost:8000`\n\n## Authentication:\nMost endpoints require JWT authentication. Include the access token in the Authorization header:\n`Authorization: Bearer <access_token>`",
+		"_postman_id": "mindpulse-api-collection-v2",
+		"name": "MindPulse API - Employee Wellbeing Platform (Corrected)",
+		"description": "Complete API documentation for MindPulse - an employee wellbeing analytics platform with emotional support chatbot.\n\n## Features:\n- JWT Token-based Authentication\n- Role-based Access Control (Employee/Manager/Admin)\n- Message Analytics with ML-powered sentiment analysis (No Auth Required)\n- Channel Management (No Auth Required)\n- Emotional Support Chatbot with OpenAI integration (Employee Only)\n- Memory management and crisis detection\n\n## Base URL: `http://localhost:8000/api`\n\n## Authentication:\n- Analytics endpoints require Manager/Admin role\n- Chatbot endpoints require Employee role\n- Message/Channel creation has NO authentication (for external server integration)\n- Include JWT token in Authorization header: `Authorization: Bearer <access_token>`",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "mindpulse-team"
 	},
@@ -22,6 +22,7 @@
 									"    pm.environment.set('access_token', response.data.access);",
 									"    pm.environment.set('refresh_token', response.data.refresh);",
 									"    pm.environment.set('user_id', response.data.user.id);",
+									"    pm.environment.set('user_role', response.data.user.role);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -87,40 +88,7 @@
 							"body": "{\n    \"success\": true,\n    \"message\": \"Registration successful\",\n    \"data\": {\n        \"access\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\",\n        \"refresh\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\",\n        \"user\": {\n            \"id\": 1,\n            \"username\": \"employee1\",\n            \"email\": \"employee1@company.com\",\n            \"role\": \"employee\",\n            \"hashed_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n            \"created_at\": \"2025-08-30T15:30:00Z\",\n            \"is_active\": true,\n            \"message_count\": 0,\n            \"last_activity\": null\n        }\n    },\n    \"timestamp\": \"2025-08-30T15:30:00Z\"\n}"
 						},
 						{
-							"name": "Error - Password Mismatch",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"username\": \"employee1\",\n    \"email\": \"employee1@company.com\",\n    \"password\": \"SecurePass123!\",\n    \"password_confirm\": \"DifferentPass123!\",\n    \"role\": \"employee\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/auth/register/",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"auth",
-										"register",
-										""
-									]
-								}
-							},
-							"status": "Bad Request",
-							"code": 400,
-							"_postman_previewlanguage": "json",
-							"header": [],
-							"cookie": [],
-							"body": "{\n    \"success\": false,\n    \"message\": \"Registration failed\",\n    \"errors\": {\n        \"non_field_errors\": [\"Passwords don't match.\"]\n    },\n    \"timestamp\": \"2025-08-30T15:30:00Z\"\n}"
-						},
-						{
-							"name": "Error - Invalid Role",
+							"name": "Error - Invalid Role (Only employees allowed)",
 							"originalRequest": {
 								"method": "POST",
 								"header": [],
@@ -230,44 +198,28 @@
 							"header": [],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Login successful\",\n    \"data\": {\n        \"access\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\",\n        \"refresh\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\",\n        \"user\": {\n            \"id\": 1,\n            \"username\": \"employee1\",\n            \"email\": \"employee1@company.com\",\n            \"role\": \"employee\",\n            \"hashed_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n            \"created_at\": \"2025-08-30T15:30:00Z\",\n            \"is_active\": true,\n            \"last_login_at\": \"2025-08-30T16:00:00Z\",\n            \"message_count\": 5,\n            \"last_activity\": \"2025-08-30T15:45:00Z\"\n        }\n    },\n    \"timestamp\": \"2025-08-30T16:00:00Z\"\n}"
-						},
-						{
-							"name": "Error - Invalid Credentials",
-							"originalRequest": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"username\": \"employee1\",\n    \"password\": \"WrongPassword123!\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{base_url}}/auth/login/",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"auth",
-										"login",
-										""
-									]
-								}
-							},
-							"status": "Unauthorized",
-							"code": 401,
-							"_postman_previewlanguage": "json",
-							"header": [],
-							"cookie": [],
-							"body": "{\n    \"success\": false,\n    \"message\": \"Invalid credentials\",\n    \"errors\": {\n        \"non_field_errors\": [\"Invalid credentials.\"]\n    },\n    \"timestamp\": \"2025-08-30T16:00:00Z\"\n}"
 						}
 					]
 				},
 				{
 					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('access_token', response.access);",
+									"    if (response.refresh) {",
+									"        pm.environment.set('refresh_token', response.refresh);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -366,112 +318,41 @@
 							]
 						}
 					},
-					"response": []
-				},
-				{
-					"name": "Get User Profile",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
+					"response": [
+						{
+							"name": "Success - Logout",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"refresh\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/auth/logout/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auth",
+										"logout",
+										""
+									]
 								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/auth/profile/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auth",
-								"profile",
-								""
-							]
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Logout successful\",\n    \"timestamp\": \"2025-08-30T16:00:00Z\"\n}"
 						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update User Profile",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"username\": \"employee1_updated\",\n    \"email\": \"employee1_updated@company.com\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/profile/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auth",
-								"profile",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Change Password",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access_token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"old_password\": \"SecurePass123!\",\n    \"new_password\": \"NewSecurePass123!\",\n    \"new_password_confirm\": \"NewSecurePass123!\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/change-password/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"auth",
-								"change-password",
-								""
-							]
-						}
-					},
-					"response": []
+					]
 				}
 			]
 		},
@@ -531,31 +412,6 @@
 							"header": [],
 							"cookie": [],
 							"body": "{\n    \"success\": true,\n    \"message\": \"Employee dashboard loaded\",\n    \"data\": {\n        \"user\": {\n            \"id\": 1,\n            \"username\": \"employee1\",\n            \"email\": \"employee1@company.com\",\n            \"role\": \"employee\"\n        },\n        \"available_features\": [\n            \"chatbot\",\n            \"profile_management\"\n        ],\n        \"message\": \"Welcome to your dashboard, employee1!\"\n    },\n    \"timestamp\": \"2025-08-30T16:00:00Z\"\n}"
-						},
-						{
-							"name": "Error - Access Denied (Manager trying Employee)",
-							"originalRequest": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/auth/dashboard/employee/",
-									"host": [
-										"{{base_url}}"
-									],
-									"path": [
-										"auth",
-										"dashboard",
-										"employee",
-										""
-									]
-								}
-							},
-							"status": "Forbidden",
-							"code": 403,
-							"_postman_previewlanguage": "json",
-							"header": [],
-							"cookie": [],
-							"body": "{\n    \"detail\": \"You do not have permission to perform this action.\"\n}"
 						}
 					]
 				},
@@ -674,7 +530,271 @@
 			]
 		},
 		{
-			"name": "Emotional Support Chatbot",
+			"name": "Data Ingestion (No Auth Required)",
+			"description": "These endpoints are designed to be called by external services (Discord bot, meeting transcription service, etc.) and do not require authentication.",
+			"item": [
+				{
+					"name": "Create Channel",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Team General Chat\",\n    \"type\": \"discord\",\n    \"external_id\": \"discord_general_123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/channels/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"channels",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Channel Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Team General Chat\",\n    \"type\": \"discord\",\n    \"external_id\": \"discord_general_123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/channels/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"channels",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Channel Created Successfully\",\n    \"data\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"name\": \"Team General Chat\",\n        \"external_id\": \"discord_general_123\",\n        \"type\": \"discord\"\n    }\n}"
+						},
+						{
+							"name": "Success - Channel Already Exists",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Team General Chat\",\n    \"type\": \"discord\",\n    \"external_id\": \"discord_general_123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/channels/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"channels",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Channel Retrieved Successfully\",\n    \"data\": {\n        \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"name\": \"Team General Chat\",\n        \"external_id\": \"discord_general_123\",\n        \"type\": \"discord\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Ingest Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('message_id', response.data.message_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"username\": \"john.doe\",\n    \"message\": \"Today's meeting was really stressful. I feel like the team is under too much pressure and deadlines are unrealistic.\",\n    \"external_ref\": \"discord_msg_123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/messages/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messages",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Message Ingested",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"username\": \"john.doe\",\n    \"message\": \"Today's meeting was really stressful. I feel like the team is under too much pressure and deadlines are unrealistic.\",\n    \"external_ref\": \"discord_msg_123456\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/messages/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"messages",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Message processed successfully\",\n    \"data\": {\n        \"message_id\": \"550e8400-e29b-41d4-a716-446655440010\",\n        \"processing_status\": \"pending\",\n        \"message_length\": 108,\n        \"user_activity_updated\": true,\n        \"queued_for_analysis\": true\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						},
+						{
+							"name": "Error - Invalid Channel",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"channel_id\": \"invalid-channel-id\",\n    \"username\": \"john.doe\",\n    \"message\": \"Test message\",\n    \"external_ref\": \"test_msg_123\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/messages/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"messages",
+										""
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Invalid or inactive channel: invalid-channel-id\",\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Batch Ingest Messages",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"username\": \"john.doe\",\n        \"message\": \"I'm feeling really overwhelmed with work lately.\",\n        \"external_ref\": \"discord_msg_001\"\n    },\n    {\n        \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"username\": \"jane.smith\",\n        \"message\": \"Great job on the presentation today! Really well done.\",\n        \"external_ref\": \"discord_msg_002\"\n    }\n]"
+						},
+						"url": {
+							"raw": "{{base_url}}/messages/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"messages",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Batch Messages Ingested",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n    {\n        \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"username\": \"john.doe\",\n        \"message\": \"I'm feeling really overwhelmed with work lately.\",\n        \"external_ref\": \"discord_msg_001\"\n    },\n    {\n        \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"username\": \"jane.smith\",\n        \"message\": \"Great job on the presentation today! Really well done.\",\n        \"external_ref\": \"discord_msg_002\"\n    }\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/messages/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"messages",
+										""
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Batch messages processed successfully\",\n    \"data\": {\n        \"processed_count\": 2,\n        \"failed_count\": 0,\n        \"message_ids\": [\n            \"550e8400-e29b-41d4-a716-446655440020\",\n            \"550e8400-e29b-41d4-a716-446655440021\"\n        ]\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Emotional Support Chatbot (Employee Only)",
 			"item": [
 				{
 					"name": "Send Message to Chatbot",
@@ -787,4 +907,931 @@
 								}
 							},
 							"status": "OK",
-							"code": 200,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Message processed successfully\\\",\\n    \\\"data\\\": {\\n        \\\"conversation_id\\\": 12345678901,\\n        \\\"message\\\": \\\"I'm really concerned about you right now, and I want you to know that your life has value and meaning. What you're feeling is incredibly difficult, but you don't have to face this alone. These thoughts you're having are a sign that you're in serious emotional pain, and there are people who can help.\\\\n\\\\nPlease reach out to a mental health professional immediately, or contact a crisis support line:\\\\n• National Suicide Prevention Lifeline: 988\\\\n• Crisis Text Line: Text HOME to 741741\\\\n• Your local emergency services: 911\\\\n\\\\nI'm here to listen, but professional help is what you need right now. Can you tell me if you have someone you trust who you can call or reach out to?\\\",\\n        \\\"support_type\\\": \\\"crisis_response\\\",\\n        \\\"user_message_analysis\\\": {\\n            \\\"sentiment\\\": \\\"negative\\\",\\n            \\\"sentiment_score\\\": 0.95,\\n            \\\"emotion\\\": \\\"sadness\\\",\\n            \\\"emotion_score\\\": 0.92,\\n            \\\"stress_detected\\\": true,\\n            \\\"stress_score\\\": 0.98,\\n            \\\"crisis_level\\\": \\\"critical\\\",\\n            \\\"crisis_indicators\\\": [\\\"can't handle\\\", \\\"breaking point\\\", \\\"better off without me\\\"],\\n            \\\"support_request\\\": \\\"crisis_intervention\\\",\\n            \\\"entities\\\": [],\\n            \\\"intent\\\": \\\"crisis_expression\\\",\\n            \\\"importance_score\\\": 1.0\\n        },\\n        \\\"escalation_needed\\\": true,\\n        \\\"conversation_status\\\": \\\"requires_attention\\\",\\n        \\\"timestamp\\\": \\\"2025-08-30T16:20:00Z\\\"\\n    },\\n    \\\"timestamp\\\": \\\"2025-08-30T16:20:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Continue Existing Conversation\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"Content-Type\",\n\t\t\t\t\t\t\"value\": \"application/json\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"body\": {\n\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\"raw\": \"{\\n    \\\"message\\\": \\\"Thank you for listening. I think the main issue is that I have three major projects due next week and I feel like I can't prioritize them properly.\\\",\\n    \\\"conversation_id\\\": {{conversation_id}}\\n}\"\n\t\t\t\t},\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/chat/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\"chat\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": []\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Get Conversation History\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/conversations/{{conversation_id}}/messages/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\"conversations\",\n\t\t\t\t\t\t\"{{conversation_id}}\",\n\t\t\t\t\t\t\"messages\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Success - Conversation History\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/conversations/12345678901/messages/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\t\t\"conversations\",\n\t\t\t\t\t\t\t\t\"12345678901\",\n\t\t\t\t\t\t\t\t\"messages\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"OK\",\n\t\t\t\t\t\"code\": 200,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Conversation history retrieved\\\",\\n    \\\"data\\\": [\\n        {\\n            \\\"id\\\": 1001,\\n            \\\"content\\\": \\\"I'm feeling really stressed about work lately. The deadlines are overwhelming and I can't seem to keep up.\\\",\\n            \\\"is_from_user\\\": true,\\n            \\\"emotions\\\": {\\n                \\\"sentiment\\\": \\\"negative\\\",\\n                \\\"sentiment_score\\\": 0.85,\\n                \\\"emotion\\\": \\\"sadness\\\",\\n                \\\"emotion_score\\\": 0.72\\n            },\\n            \\\"crisis_level\\\": \\\"moderate\\\",\\n            \\\"support_request\\\": \\\"listening\\\",\\n            \\\"created_at\\\": \\\"2025-08-30T16:15:00Z\\\"\\n        },\\n        {\\n            \\\"id\\\": 1002,\\n            \\\"content\\\": \\\"I hear you, and I can understand how overwhelming it must feel...\\\",\\n            \\\"is_from_user\\\": false,\\n            \\\"emotions\\\": {},\\n            \\\"crisis_level\\\": \\\"none\\\",\\n            \\\"support_request\\\": \\\"\\\",\\n            \\\"created_at\\\": \\\"2025-08-30T16:15:05Z\\\"\\n        }\\n    ],\\n    \\\"timestamp\\\": \\\"2025-08-30T16:30:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"List All Conversations\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/conversations/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\"conversations\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Success - Conversations List\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/conversations/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\t\t\"conversations\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"OK\",\n\t\t\t\t\t\"code\": 200,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Conversations retrieved\\\",\\n    \\\"data\\\": [\\n        {\\n            \\\"id\\\": 12345678901,\\n            \\\"title\\\": \\\"Emotional Support Chat - 2025-08-30 16:15\\\",\\n            \\\"status\\\": \\\"active\\\",\\n            \\\"created_at\\\": \\\"2025-08-30T16:15:00Z\\\",\\n            \\\"updated_at\\\": \\\"2025-08-30T16:25:00Z\\\",\\n            \\\"favourite\\\": false,\\n            \\\"archive\\\": false,\\n            \\\"follow_up_needed\\\": false,\\n            \\\"crisis_flags\\\": [\\\"stressed\\\", \\\"overwhelming\\\"],\\n            \\\"last_message_preview\\\": \\\"Thank you for listening. I think the main issue is that I have three major projects due...\\\"\\n        },\\n        {\\n            \\\"id\\\": 12345678902,\\n            \\\"title\\\": \\\"Emotional Support Chat - 2025-08-29 14:30\\\",\\n            \\\"status\\\": \\\"archived\\\",\\n            \\\"created_at\\\": \\\"2025-08-29T14:30:00Z\\\",\\n            \\\"updated_at\\\": \\\"2025-08-29T15:45:00Z\\\",\\n            \\\"favourite\\\": true,\\n            \\\"archive\\\": true,\\n            \\\"follow_up_needed\\\": false,\\n            \\\"crisis_flags\\\": [],\\n            \\\"last_message_preview\\\": \\\"I'm feeling much better now. Thank you for the support and practical advice...\\\"\\n        }\\n    ],\\n    \\\"timestamp\\\": \\\"2025-08-30T16:30:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t]\n},\n{\n\t\"name\": \"Message Analytics (Manager/Admin Only)\",\n\t\"item\": [\n\t\t{\n\t\t\t\"name\": \"Ingest Message (External Backend)\",\n\t\t\t\"request\": {\n\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"Content-Type\",\n\t\t\t\t\t\t\"value\": \"application/json\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"body\": {\n\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\"raw\": \"{\\n    \\\"channel_id\\\": \\\"550e8400-e29b-41d4-a716-446655440000\\\",\\n    \\\"user_hash\\\": \\\"550e8400-e29b-41d4-a716-446655440001\\\",\\n    \\\"message\\\": \\\"Today's meeting was really stressful. I feel like the team is under too much pressure and deadlines are unrealistic.\\\",\\n    \\\"external_ref\\\": \\\"discord_msg_123456\\\"\\n}\"\n\t\t\t\t},\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/messages/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"messages\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Success - Message Ingested\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"body\": {\n\t\t\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\t\t\"raw\": \"{\\n    \\\"channel_id\\\": \\\"550e8400-e29b-41d4-a716-446655440000\\\",\\n    \\\"user_hash\\\": \\\"550e8400-e29b-41d4-a716-446655440001\\\",\\n    \\\"message\\\": \\\"Today's meeting was really stressful. I feel like the team is under too much pressure and deadlines are unrealistic.\\\",\\n    \\\"external_ref\\\": \\\"discord_msg_123456\\\"\\n}\",\n\t\t\t\t\t\t\t\"options\": {\n\t\t\t\t\t\t\t\t\"raw\": {\n\t\t\t\t\t\t\t\t\t\"language\": \"json\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/messages/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"messages\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Created\",\n\t\t\t\t\t\"code\": 201,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Message ingested successfully\\\",\\n    \\\"data\\\": {\\n        \\\"message_id\\\": \\\"550e8400-e29b-41d4-a716-446655440010\\\",\\n        \\\"processing_status\\\": \\\"pending\\\",\\n        \\\"message_length\\\": 108,\\n        \\\"user_activity_updated\\\": true\\n    },\\n    \\\"timestamp\\\": \\\"2025-08-30T17:00:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Team Dashboard Analytics\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/team-dashboard/?start_date=2025-08-01&end_date=2025-08-30\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\"team-dashboard\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t],\n\t\t\t\t\t\"query\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"start_date\",\n\t\t\t\t\t\t\t\"value\": \"2025-08-01\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"end_date\",\n\t\t\t\t\t\t\t\"value\": \"2025-08-30\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Success - Team Analytics\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/team-dashboard/?start_date=2025-08-01&end_date=2025-08-30\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\t\t\"team-dashboard\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"query\": [\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\"key\": \"start_date\",\n\t\t\t\t\t\t\t\t\t\"value\": \"2025-08-01\"\n\t\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\t\t\"key\": \"end_date\",\n\t\t\t\t\t\t\t\t\t\"value\": \"2025-08-30\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"OK\",\n\t\t\t\t\t\"code\": 200,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Team analytics retrieved successfully\\\",\\n    \\\"data\\\": {\\n        \\\"overview\\\": {\\n            \\\"total_messages\\\": 1250,\\n            \\\"active_users\\\": 25,\\n            \\\"average_wellbeing_score\\\": 6.8,\\n            \\\"stress_level_distribution\\\": {\\n                \\\"low\\\": 60,\\n                \\\"moderate\\\": 30,\\n                \\\"high\\\": 8,\\n                \\\"critical\\\": 2\\n            }\\n        },\\n        \\\"sentiment_analysis\\\": {\\n            \\\"positive\\\": 45.2,\\n            \\\"neutral\\\": 38.1,\\n            \\\"negative\\\": 16.7\\n        },\\n        \\\"emotion_distribution\\\": {\\n            \\\"joy\\\": 35.4,\\n            \\\"neutral\\\": 28.9,\\n            \\\"sadness\\\": 18.2,\\n            \\\"anger\\\": 12.1,\\n            \\\"fear\\\": 5.4\\n        },\\n        \\\"channel_performance\\\": [\\n            {\\n                \\\"channel_name\\\": \\\"general-chat\\\",\\n                \\\"message_count\\\": 450,\\n                \\\"avg_sentiment\\\": 0.65,\\n                \\\"stress_incidents\\\": 12\\n            },\\n            {\\n                \\\"channel_name\\\": \\\"project-updates\\\",\\n                \\\"message_count\\\": 320,\\n                \\\"avg_sentiment\\\": 0.45,\\n                \\\"stress_incidents\\\": 28\\n            }\\n        ],\\n        \\\"trends\\\": {\\n            \\\"daily_wellbeing\\\": [\\n                {\\\"date\\\": \\\"2025-08-29\\\", \\\"score\\\": 7.2},\\n                {\\\"date\\\": \\\"2025-08-30\\\", \\\"score\\\": 6.8}\\n            ]\\n        }\\n    },\\n    \\\"timestamp\\\": \\\"2025-08-30T17:00:00Z\\\"\\n}\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Error - Access Denied (Employee)\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/team-dashboard/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\t\t\"team-dashboard\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Forbidden\",\n\t\t\t\t\t\"code\": 403,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"detail\\\": \\\"You do not have permission to perform this action.\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"User Wellbeing Report\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/user-wellbeing/?user_hash=550e8400-e29b-41d4-a716-446655440001&period=weekly\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\"user-wellbeing\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t],\n\t\t\t\t\t\"query\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"user_hash\",\n\t\t\t\t\t\t\t\"value\": \"550e8400-e29b-41d4-a716-446655440001\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"period\",\n\t\t\t\t\t\t\t\"value\": \"weekly\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": []\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Wellbeing Trends\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/trends/?period=monthly&metric=wellbeing_score\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\"trends\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t],\n\t\t\t\t\t\"query\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"period\",\n\t\t\t\t\t\t\t\"value\": \"monthly\"\n\t\t\t\t\t\t},\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"metric\",\n\t\t\t\t\t\t\t\"value\": \"wellbeing_score\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": []\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Channel Comparison\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/channel-comparison/?channels=550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\"channel-comparison\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t],\n\t\t\t\t\t\"query\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"channels\",\n\t\t\t\t\t\t\t\"value\": \"550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": []\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Wellbeing Alerts\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/analytics/alerts/?severity=high\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"analytics\",\n\t\t\t\t\t\t\"alerts\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t],\n\t\t\t\t\t\"query\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"severity\",\n\t\t\t\t\t\t\t\"value\": \"high\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": []\n\t\t}\n\t]\n},\n{\n\t\"name\": \"Channel Management\",\n\t\"item\": [\n\t\t{\n\t\t\t\"name\": \"Create Channel\",\n\t\t\t\"request\": {\n\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"Content-Type\",\n\t\t\t\t\t\t\"value\": \"application/json\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"body\": {\n\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\"raw\": \"{\\n    \\\"name\\\": \\\"Team General Chat\\\",\\n    \\\"type\\\": \\\"discord\\\",\\n    \\\"external_id\\\": \\\"discord_general_123\\\"\\n}\"\n\t\t\t\t},\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/channels/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"channels\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Success - Channel Created\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"body\": {\n\t\t\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\t\t\"raw\": \"{\\n    \\\"name\\\": \\\"Team General Chat\\\",\\n    \\\"type\\\": \\\"discord\\\",\\n    \\\"external_id\\\": \\\"discord_general_123\\\"\\n}\",\n\t\t\t\t\t\t\t\"options\": {\n\t\t\t\t\t\t\t\t\"raw\": {\n\t\t\t\t\t\t\t\t\t\"language\": \"json\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/channels/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"channels\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Created\",\n\t\t\t\t\t\"code\": 201,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": true,\\n    \\\"message\\\": \\\"Channel created successfully\\\",\\n    \\\"data\\\": {\\n        \\\"id\\\": \\\"550e8400-e29b-41d4-a716-446655440000\\\",\\n        \\\"name\\\": \\\"Team General Chat\\\",\\n        \\\"type\\\": \\\"discord\\\",\\n        \\\"external_id\\\": \\\"discord_general_123\\\",\\n        \\\"is_active\\\": true,\\n        \\\"created_at\\\": \\\"2025-08-30T17:00:00Z\\\"\\n    },\\n    \\\"timestamp\\\": \\\"2025-08-30T17:00:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"List Channels\",\n\t\t\t\"request\": {\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/channels/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"channels\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": []\n\t\t}\n\t]\n},\n{\n\t\"name\": \"Error Scenarios & Edge Cases\",\n\t\"item\": [\n\t\t{\n\t\t\t\"name\": \"Invalid Token\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"invalid_token_123\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/auth/profile/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"auth\",\n\t\t\t\t\t\t\"profile\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Error - Invalid Token\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/auth/profile/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"auth\",\n\t\t\t\t\t\t\t\t\"profile\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Unauthorized\",\n\t\t\t\t\t\"code\": 401,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"detail\\\": \\\"Given token not valid for any token type\\\",\\n    \\\"code\\\": \\\"token_not_valid\\\",\\n    \\\"messages\\\": [\\n        {\\n            \\\"token_class\\\": \\\"AccessToken\\\",\\n            \\\"token_type\\\": \\\"access\\\",\\n            \\\"message\\\": \\\"Token is invalid or expired\\\"\\n        }\\n    ]\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Missing Authentication\",\n\t\t\t\"request\": {\n\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\"header\": [],\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/conversations/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\"conversations\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Error - Authentication Required\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"GET\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/conversations/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\t\t\"conversations\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Unauthorized\",\n\t\t\t\t\t\"code\": 401,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"detail\\\": \\\"Authentication credentials were not provided.\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Chatbot - Empty Message\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"Content-Type\",\n\t\t\t\t\t\t\"value\": \"application/json\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"body\": {\n\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\"raw\": \"{\\n    \\\"message\\\": \\\"\\\",\\n    \\\"conversation_id\\\": null\\n}\"\n\t\t\t\t},\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/chat/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\"chat\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Error - Empty Message\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"body\": {\n\t\t\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\t\t\"raw\": \"{\\n    \\\"message\\\": \\\"\\\",\\n    \\\"conversation_id\\\": null\\n}\",\n\t\t\t\t\t\t\t\"options\": {\n\t\t\t\t\t\t\t\t\"raw\": {\n\t\t\t\t\t\t\t\t\t\"language\": \"json\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/chat/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\t\t\"chat\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Bad Request\",\n\t\t\t\t\t\"code\": 400,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": false,\\n    \\\"message\\\": \\\"Validation failed\\\",\\n    \\\"errors\\\": {\\n        \\\"message\\\": [\\\"This field may not be blank.\\\"]\\n    },\\n    \\\"timestamp\\\": \\\"2025-08-30T17:00:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Rate Limit Exceeded\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"Content-Type\",\n\t\t\t\t\t\t\"value\": \"application/json\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"body\": {\n\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\"raw\": \"{\\n    \\\"username\\\": \\\"test_user\\\",\\n    \\\"password\\\": \\\"wrong_password\\\"\\n}\"\n\t\t\t\t},\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/auth/login/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"auth\",\n\t\t\t\t\t\t\"login\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Error - Rate Limited\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"body\": {\n\t\t\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\t\t\"raw\": \"{\\n    \\\"username\\\": \\\"test_user\\\",\\n    \\\"password\\\": \\\"wrong_password\\\"\\n}\",\n\t\t\t\t\t\t\t\"options\": {\n\t\t\t\t\t\t\t\t\"raw\": {\n\t\t\t\t\t\t\t\t\t\"language\": \"json\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/auth/login/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"auth\",\n\t\t\t\t\t\t\t\t\"login\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Too Many Requests\",\n\t\t\t\t\t\"code\": 429,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"detail\\\": \\\"Request was throttled. Expected available in 60 seconds.\\\",\\n    \\\"throttle_type\\\": \\\"user\\\",\\n    \\\"wait\\\": 60\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Server Error (500)\",\n\t\t\t\"request\": {\n\t\t\t\t\"auth\": {\n\t\t\t\t\t\"type\": \"bearer\",\n\t\t\t\t\t\"bearer\": [\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\"key\": \"token\",\n\t\t\t\t\t\t\t\"value\": \"{{access_token}}\",\n\t\t\t\t\t\t\t\"type\": \"string\"\n\t\t\t\t\t\t}\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\"header\": [\n\t\t\t\t\t{\n\t\t\t\t\t\t\"key\": \"Content-Type\",\n\t\t\t\t\t\t\"value\": \"application/json\"\n\t\t\t\t\t}\n\t\t\t\t],\n\t\t\t\t\"body\": {\n\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\"raw\": \"{\\n    \\\"message\\\": \\\"This should trigger an error for testing purposes\\\",\\n    \\\"conversation_id\\\": null\\n}\"\n\t\t\t\t},\n\t\t\t\t\"url\": {\n\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/chat/\",\n\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t],\n\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\"chat\",\n\t\t\t\t\t\t\"\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"response\": [\n\t\t\t\t{\n\t\t\t\t\t\"name\": \"Error - Server Error\",\n\t\t\t\t\t\"originalRequest\": {\n\t\t\t\t\t\t\"method\": \"POST\",\n\t\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\t\"body\": {\n\t\t\t\t\t\t\t\"mode\": \"raw\",\n\t\t\t\t\t\t\t\"raw\": \"{\\n    \\\"message\\\": \\\"This should trigger an error for testing purposes\\\",\\n    \\\"conversation_id\\\": null\\n}\",\n\t\t\t\t\t\t\t\"options\": {\n\t\t\t\t\t\t\t\t\"raw\": {\n\t\t\t\t\t\t\t\t\t\"language\": \"json\"\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\t\"url\": {\n\t\t\t\t\t\t\t\"raw\": \"{{base_url}}/chatbot/chat/\",\n\t\t\t\t\t\t\t\"host\": [\n\t\t\t\t\t\t\t\t\"{{base_url}}\"\n\t\t\t\t\t\t\t],\n\t\t\t\t\t\t\t\"path\": [\n\t\t\t\t\t\t\t\t\"chatbot\",\n\t\t\t\t\t\t\t\t\"chat\",\n\t\t\t\t\t\t\t\t\"\"\n\t\t\t\t\t\t\t]\n\t\t\t\t\t\t}\n\t\t\t\t\t},\n\t\t\t\t\t\"status\": \"Internal Server Error\",\n\t\t\t\t\t\"code\": 500,\n\t\t\t\t\t\"_postman_previewlanguage\": \"json\",\n\t\t\t\t\t\"header\": [],\n\t\t\t\t\t\"cookie\": [],\n\t\t\t\t\t\"body\": \"{\\n    \\\"success\\\": false,\\n    \\\"message\\\": \\\"An internal server error occurred\\\",\\n    \\\"error\\\": \\\"Unable to process message at this time.\\\",\\n    \\\"support_message\\\": \\\"I'm here to listen. Please feel free to share what's on your mind when you're ready.\\\",\\n    \\\"timestamp\\\": \\\"2025-08-30T17:00:00Z\\\"\\n}\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t]\n}],\n\"event\": [\n\t{\n\t\t\"listen\": \"prerequest\",\n\t\t\"script\": {\n\t\t\t\"type\": \"text/javascript\",\n\t\t\t\"exec\": [\n\t\t\t\t\"// Auto-refresh token if needed\",\n\t\t\t\t\"if (pm.environment.get('access_token')) {\",\n\t\t\t\t\"    const token = pm.environment.get('access_token');\",\n\t\t\t\t\"    const payload = JSON.parse(atob(token.split('.')[1]));\",\n\t\t\t\t\"    const now = Math.floor(Date.now() / 1000);\",\n\t\t\t\t\"    \",\n\t\t\t\t\"    if (payload.exp < now + 300) { // Refresh if expires in 5 minutes\",\n\t\t\t\t\"        console.log('Token expires soon, consider refreshing');\",\n\t\t\t\t\"    }\",\n\t\t\t\t\"}\"\n\t\t\t]\n\t\t}\n\t}\n],\n\"variable\": [\n\t{\n\t\t\"key\": \"base_url\",\n\t\t\"value\": \"http://localhost:8000\",\n\t\t\"type\": \"string\"\n\t},\n\t{\n\t\t\"key\": \"access_token\",\n\t\t\"value\": \"\",\n\t\t\"type\": \"string\"\n\t},\n\t{\n\t\t\"key\": \"refresh_token\",\n\t\t\"value\": \"\",\n\t\t\"type\": \"string\"\n\t},\n\t{\n\t\t\"key\": \"user_id\",\n\t\t\"value\": \"\",\n\t\t\"type\": \"string\"\n\t},\n\t{\n\t\t\"key\": \"user_role\",\n\t\t\"value\": \"\",\n\t\t\"type\": \"string\"\n\t},\n\t{\n\t\t\"key\": \"conversation_id\",\n\t\t\"value\": \"\",\n\t\t\"type\": \"string\"\n\t}\n]}
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Message processed successfully\",\n    \"data\": {\n        \"conversation_id\": 12345678901,\n        \"message\": \"I'm really concerned about you right now, and I want you to know that your life has value and meaning. What you're feeling is incredibly difficult, but you don't have to face this alone. These thoughts you're having are a sign that you're in serious emotional pain, and there are people who can help.\\n\\nPlease reach out to a mental health professional immediately, or contact a crisis support line:\\n• National Suicide Prevention Lifeline: 988\\n• Crisis Text Line: Text HOME to 741741\\n• Your local emergency services: 911\\n\\nI'm here to listen, but professional help is what you need right now. Can you tell me if you have someone you trust who you can call or reach out to?\",\n        \"support_type\": \"crisis_response\",\n        \"user_message_analysis\": {\n            \"sentiment\": \"negative\",\n            \"sentiment_score\": 0.95,\n            \"emotion\": \"sadness\",\n            \"emotion_score\": 0.92,\n            \"stress_detected\": true,\n            \"stress_score\": 0.98,\n            \"crisis_level\": \"critical\",\n            \"crisis_indicators\": [\"can't handle\", \"breaking point\", \"better off without me\"],\n            \"support_request\": \"crisis_intervention\",\n            \"entities\": [],\n            \"intent\": \"crisis_expression\",\n            \"importance_score\": 1.0\n        },\n        \"escalation_needed\": true,\n        \"conversation_status\": \"requires_attention\",\n        \"timestamp\": \"2025-08-30T16:20:00Z\"\n    },\n    \"timestamp\": \"2025-08-30T16:20:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Continue Existing Conversation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Thank you for listening. I think the main issue is that I have three major projects due next week and I feel like I can't prioritize them properly.\",\n    \"conversation_id\": {{conversation_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chatbot/chat/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"chat",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Conversation History",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/chatbot/conversations/{{conversation_id}}/messages/?limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"conversations",
+								"{{conversation_id}}",
+								"messages",
+								""
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Number of messages to retrieve (optional, default 50)"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Conversation History",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/chatbot/conversations/12345678901/messages/?limit=20",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"chatbot",
+										"conversations",
+										"12345678901",
+										"messages",
+										""
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Conversation history retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1001,\n            \"content\": \"I'm feeling really stressed about work lately. The deadlines are overwhelming and I can't seem to keep up.\",\n            \"is_from_user\": true,\n            \"emotions\": {\n                \"sentiment\": \"negative\",\n                \"sentiment_score\": 0.85,\n                \"emotion\": \"sadness\",\n                \"emotion_score\": 0.72\n            },\n            \"crisis_level\": \"moderate\",\n            \"support_request\": \"listening\",\n            \"created_at\": \"2025-08-30T16:15:00Z\"\n        },\n        {\n            \"id\": 1002,\n            \"content\": \"I hear you, and I can understand how overwhelming it must feel...\",\n            \"is_from_user\": false,\n            \"emotions\": {},\n            \"crisis_level\": \"none\",\n            \"support_request\": \"\",\n            \"created_at\": \"2025-08-30T16:15:05Z\"\n        }\n    ],\n    \"timestamp\": \"2025-08-30T16:30:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "List All Conversations",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/chatbot/conversations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"conversations",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Conversations List",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/chatbot/conversations/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"chatbot",
+										"conversations",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Conversations retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 12345678901,\n            \"title\": \"Emotional Support Chat - 2025-08-30 16:15\",\n            \"status\": \"active\",\n            \"created_at\": \"2025-08-30T16:15:00Z\",\n            \"updated_at\": \"2025-08-30T16:25:00Z\",\n            \"favourite\": false,\n            \"archive\": false,\n            \"follow_up_needed\": false,\n            \"crisis_flags\": [\"stressed\", \"overwhelming\"],\n            \"last_message_preview\": \"Thank you for listening. I think the main issue is that I have three major projects due...\"\n        },\n        {\n            \"id\": 12345678902,\n            \"title\": \"Emotional Support Chat - 2025-08-29 14:30\",\n            \"status\": \"archived\",\n            \"created_at\": \"2025-08-29T14:30:00Z\",\n            \"updated_at\": \"2025-08-29T15:45:00Z\",\n            \"favourite\": true,\n            \"archive\": true,\n            \"follow_up_needed\": false,\n            \"crisis_flags\": [],\n            \"last_message_preview\": \"I'm feeling much better now. Thank you for the support and practical advice...\"\n        }\n    ],\n    \"timestamp\": \"2025-08-30T16:30:00Z\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Analytics Dashboard (Manager/Admin Only)",
+			"item": [
+				{
+					"name": "Team Dashboard Analytics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/team-dashboard/?start_date=2025-08-01&end_date=2025-08-30",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"team-dashboard",
+								""
+							],
+							"query": [
+								{
+									"key": "start_date",
+									"value": "2025-08-01",
+									"description": "Start date for analytics (YYYY-MM-DD format)"
+								},
+								{
+									"key": "end_date",
+									"value": "2025-08-30",
+									"description": "End date for analytics (YYYY-MM-DD format)"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Team Analytics",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/team-dashboard/?start_date=2025-08-01&end_date=2025-08-30",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"team-dashboard",
+										""
+									],
+									"query": [
+										{
+											"key": "start_date",
+											"value": "2025-08-01"
+										},
+										{
+											"key": "end_date",
+											"value": "2025-08-30"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Team analytics retrieved successfully\",\n    \"data\": {\n        \"overview\": {\n            \"total_messages\": 1250,\n            \"active_users\": 25,\n            \"average_wellbeing_score\": 6.8,\n            \"stress_level_distribution\": {\n                \"low\": 60,\n                \"moderate\": 30,\n                \"high\": 8,\n                \"critical\": 2\n            }\n        },\n        \"sentiment_analysis\": {\n            \"positive\": 45.2,\n            \"neutral\": 38.1,\n            \"negative\": 16.7\n        },\n        \"emotion_distribution\": {\n            \"joy\": 35.4,\n            \"neutral\": 28.9,\n            \"sadness\": 18.2,\n            \"anger\": 12.1,\n            \"fear\": 5.4\n        },\n        \"channel_performance\": [\n            {\n                \"channel_name\": \"general-chat\",\n                \"message_count\": 450,\n                \"avg_sentiment\": 0.65,\n                \"stress_incidents\": 12\n            },\n            {\n                \"channel_name\": \"project-updates\",\n                \"message_count\": 320,\n                \"avg_sentiment\": 0.45,\n                \"stress_incidents\": 28\n            }\n        ],\n        \"trends\": {\n            \"daily_wellbeing\": [\n                {\"date\": \"2025-08-29\", \"score\": 7.2},\n                {\"date\": \"2025-08-30\", \"score\": 6.8}\n            ]\n        }\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						},
+						{
+							"name": "Error - Access Denied (Employee)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/team-dashboard/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"team-dashboard",
+										""
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"You do not have permission to perform this action.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "User Wellbeing Report",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/user-wellbeing/?user_name=john.doe&period=weekly",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"user-wellbeing",
+								""
+							],
+							"query": [
+								{
+									"key": "user_name",
+									"value": "550e8400-e29b-41d4-a716-446655440001",
+									"description": "User hash to get wellbeing report for"
+								},
+								{
+									"key": "period",
+									"value": "weekly",
+									"description": "Period: daily, weekly, monthly"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - User Wellbeing Report",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/user-wellbeing/?user_name=john.doe&period=weekly",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"user-wellbeing",
+										""
+									],
+									"query": [
+										{
+											"key": "user_name",
+											"value": "john.doe"
+										},
+										{
+											"key": "period",
+											"value": "weekly"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"User wellbeing report retrieved successfully\",\n    \"data\": {\n        \"username\": \"john.doe\",\n        \"period\": \"weekly\",\n        \"wellbeing_score\": 6.2,\n        \"sentiment_trend\": [\n            {\"week\": \"2025-W34\", \"score\": 0.65},\n            {\"week\": \"2025-W35\", \"score\": 0.58}\n        ],\n        \"stress_levels\": {\n            \"low\": 3,\n            \"moderate\": 4,\n            \"high\": 0,\n            \"critical\": 0\n        },\n        \"message_activity\": {\n            \"total_messages\": 45,\n            \"channels_active\": [\"general\", \"project-updates\"],\n            \"most_active_time\": \"14:00-16:00\"\n        }\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Wellbeing Trends",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/trends/?period=monthly&metric=wellbeing_score",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"trends",
+								""
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "monthly",
+									"description": "Period: daily, weekly, monthly"
+								},
+								{
+									"key": "metric",
+									"value": "wellbeing_score",
+									"description": "Metric: wellbeing_score, sentiment_avg, stress_avg"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Wellbeing Trends",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/trends/?period=monthly&metric=wellbeing_score",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"trends",
+										""
+									],
+									"query": [
+										{
+											"key": "period",
+											"value": "monthly"
+										},
+										{
+											"key": "metric",
+											"value": "wellbeing_score"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Wellbeing trends retrieved successfully\",\n    \"data\": {\n        \"period\": \"monthly\",\n        \"metric\": \"wellbeing_score\",\n        \"trends\": [\n            {\"period\": \"2025-06\", \"value\": 7.2, \"change\": \"+2.1%\"},\n            {\"period\": \"2025-07\", \"value\": 6.8, \"change\": \"-5.6%\"},\n            {\"period\": \"2025-08\", \"value\": 6.9, \"change\": \"+1.5%\"}\n        ],\n        \"insights\": [\n            \"Wellbeing scores have been relatively stable\",\n            \"August shows slight improvement over July\"\n        ]\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Channel Comparison",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/channel-comparison/?channels=550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"channel-comparison",
+								""
+							],
+							"query": [
+								{
+									"key": "channels",
+									"value": "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001",
+									"description": "Comma-separated list of channel IDs to compare"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Channel Comparison",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/channel-comparison/?channels=550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"channel-comparison",
+										""
+									],
+									"query": [
+										{
+											"key": "channels",
+											"value": "550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Channel comparison retrieved successfully\",\n    \"data\": {\n        \"comparison\": [\n            {\n                \"channel_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n                \"channel_name\": \"general-chat\",\n                \"message_count\": 450,\n                \"avg_sentiment\": 0.65,\n                \"wellbeing_score\": 7.1,\n                \"stress_incidents\": 12,\n                \"most_common_emotion\": \"joy\"\n            },\n            {\n                \"channel_id\": \"550e8400-e29b-41d4-a716-446655440001\",\n                \"channel_name\": \"project-updates\",\n                \"message_count\": 320,\n                \"avg_sentiment\": 0.45,\n                \"wellbeing_score\": 6.2,\n                \"stress_incidents\": 28,\n                \"most_common_emotion\": \"neutral\"\n            }\n        ],\n        \"insights\": [\n            \"general-chat has higher wellbeing scores than project-updates\",\n            \"project-updates shows more stress indicators\"\n        ]\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Wellbeing Alerts",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/alerts/?severity=high",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"alerts",
+								""
+							],
+							"query": [
+								{
+									"key": "severity",
+									"value": "high",
+									"description": "Filter by severity: low, medium, high, critical"
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Wellbeing Alerts",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/alerts/?severity=high",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"alerts",
+										""
+									],
+									"query": [
+										{
+											"key": "severity",
+											"value": "high"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Wellbeing alerts retrieved successfully\",\n    \"data\": {\n        \"alerts\": [\n            {\n                \"id\": \"alert_001\",\n                \"severity\": \"high\",\n                \"type\": \"stress_spike\",\n                \"description\": \"High stress levels detected in project-updates channel\",\n                \"affected_users\": 3,\n                \"channel\": \"project-updates\",\n                \"detected_at\": \"2025-08-30T14:30:00Z\",\n                \"status\": \"active\"\n            },\n            {\n                \"id\": \"alert_002\",\n                \"severity\": \"high\",\n                \"type\": \"sentiment_decline\",\n                \"description\": \"Significant sentiment decline for user in past 3 days\",\n                \"affected_users\": 1,\n                \"user_hash\": \"550e8400-e29b-41d4-a716-446655440005\",\n                \"detected_at\": \"2025-08-30T09:15:00Z\",\n                \"status\": \"acknowledged\"\n            }\n        ],\n        \"summary\": {\n            \"total_alerts\": 2,\n            \"active_alerts\": 1,\n            \"acknowledged_alerts\": 1\n        }\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Error Scenarios & Edge Cases",
+			"item": [
+				{
+					"name": "Invalid Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "invalid_token_123",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/chatbot/conversations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"conversations",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Error - Invalid Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/chatbot/conversations/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"chatbot",
+										"conversations",
+										""
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Given token not valid for any token type\",\n    \"code\": \"token_not_valid\",\n    \"messages\": [\n        {\n            \"token_class\": \"AccessToken\",\n            \"token_type\": \"access\",\n            \"message\": \"Token is invalid or expired\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Missing Authentication",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/chatbot/conversations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"conversations",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Error - Authentication Required",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/chatbot/conversations/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"chatbot",
+										"conversations",
+										""
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Authentication credentials were not provided.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Wrong Role Access",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/team-dashboard/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"team-dashboard",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Error - Insufficient Permissions (Employee accessing Manager endpoint)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/analytics/team-dashboard/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"analytics",
+										"team-dashboard",
+										""
+									]
+								}
+							},
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"You do not have permission to perform this action.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Empty Chatbot Message",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"\",\n    \"conversation_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chatbot/chat/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"chat",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Error - Empty Message",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"\",\n    \"conversation_id\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/chatbot/chat/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"chatbot",
+										"chat",
+										""
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": false,\n    \"message\": \"Invalid message data\",\n    \"errors\": {\n        \"message\": [\"Message cannot be empty.\"]\n    },\n    \"timestamp\": \"2025-08-30T17:00:00Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "OpenAI Service Failure",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"This should trigger a fallback response when OpenAI is unavailable\",\n    \"conversation_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chatbot/chat/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chatbot",
+								"chat",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success - Fallback Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"This should trigger a fallback response when OpenAI is unavailable\",\n    \"conversation_id\": null\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/chatbot/chat/",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"chatbot",
+										"chat",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"success\": true,\n    \"message\": \"Message processed successfully\",\n    \"data\": {\n        \"conversation_id\": 12345678903,\n        \"message\": \"I hear you, and I want you to know that your feelings are valid. Sometimes it helps just to have someone listen. Would you like to tell me more about what's on your mind?\",\n        \"support_type\": \"listening\",\n        \"user_message_analysis\": {\n            \"sentiment\": \"neutral\",\n            \"sentiment_score\": 0.5,\n            \"emotion\": \"neutral\",\n            \"emotion_score\": 0.5,\n            \"stress_detected\": false,\n            \"stress_score\": 0.0,\n            \"crisis_level\": \"none\",\n            \"crisis_indicators\": [],\n            \"support_request\": \"listening\",\n            \"entities\": [],\n            \"intent\": \"general_support\",\n            \"importance_score\": 0.3\n        },\n        \"escalation_needed\": false,\n        \"conversation_status\": \"active\",\n        \"timestamp\": \"2025-08-30T16:15:00Z\"\n    },\n    \"timestamp\": \"2025-08-30T16:15:00Z\"\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-refresh token if needed",
+					"if (pm.environment.get('access_token')) {",
+					"    const token = pm.environment.get('access_token');",
+					"    try {",
+					"        const payload = JSON.parse(atob(token.split('.')[1]));",
+					"        const now = Math.floor(Date.now() / 1000);",
+					"        ",
+					"        if (payload.exp < now + 300) { // Refresh if expires in 5 minutes",
+					"            console.log('Token expires soon, consider refreshing');",
+					"        }",
+					"    } catch (e) {",
+					"        console.log('Invalid token format');",
+					"    }",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_role",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "conversation_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "message_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
