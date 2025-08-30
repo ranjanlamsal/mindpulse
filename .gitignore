@@ -24,6 +24,10 @@ static_collected/
 *.sublime-project
 *.sublime-workspace
 
+#AI
+.claude/
+.openai/
+
 # Logs and temporary files
 *.log
 tmp/
