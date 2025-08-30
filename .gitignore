@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / compiled files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Virtual environment
+venv/
+env/
+.env/
+.venv/
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Media and static files
+media/
+static_collected/
+
+# IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Configuration files
+# Sensitive information should not be committed to Git.
+# Consider using environment variables or a separate, untracked settings file.
+# local_settings.py
+
+# Django specific
+# Migrations that are auto-generated and don't need to be versioned if using squashed migrations
+# However, if you are not squashing migrations, you might want to version control them.
+# app_name/migrations/
+
+# Other
+.DS_Store
+Thumbs.db
+
+model/
