@@ -80,9 +80,8 @@ class EmotionalSupportChatbotService:
         Get conversation history for a specific conversation.
         """
         try:
-            if not self.user:
-                return []  # No history for anonymous users
-            conversation = Conversation.objects.get(id=conversation_id, user=self.user)
+            # For POC, allow access to any conversation by ID
+            conversation = Conversation.objects.get(id=conversation_id)
             messages = conversation.messages.order_by('created_at')[:limit]
             
             return [
@@ -104,9 +103,8 @@ class EmotionalSupportChatbotService:
         """
         List all conversations for the user.
         """
-        if not self.user:
-            return []  # No conversations for anonymous users
-        conversations = Conversation.objects.filter(user=self.user).order_by('-updated_at')
+        # For POC, show all recent conversations regardless of user
+        conversations = Conversation.objects.all().order_by('-updated_at')[:20]
         
         return [
             {

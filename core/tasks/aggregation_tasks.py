@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-@shared_task
+@shared_task(name='core.tasks.aggregation_tasks.aggregate_wellbeing')
 def aggregate_wellbeing():
     try:
         # Define daily time range
@@ -47,11 +47,11 @@ def aggregate_wellbeing():
 
         if team_analyses['total_count'] > 0:
             sentiment_weighted_avg = (
-                (team_analyses['sentiment_sum'] - team_analyses['neg_sentiment_sum'])
+                ((team_analyses['sentiment_sum'] or 0.0) - (team_analyses['neg_sentiment_sum'] or 0.0))
                 / team_analyses['total_count']
             )
             stress_weighted_avg = (
-                (team_analyses['stress_sum'] - team_analyses['no_stress_sum'])
+                ((team_analyses['stress_sum'] or 0.0) - (team_analyses['no_stress_sum'] or 0.0))
                 / team_analyses['total_count']
             )
             WellbeingAggregate.objects.update_or_create(
@@ -100,11 +100,11 @@ def aggregate_wellbeing():
 
             if user_analyses['total_count'] > 0:
                 sentiment_weighted_avg = (
-                    (user_analyses['sentiment_sum'] - user_analyses['neg_sentiment_sum'])
+                    ((user_analyses['sentiment_sum'] or 0.0) - (user_analyses['neg_sentiment_sum'] or 0.0))
                     / user_analyses['total_count']
                 )
                 stress_weighted_avg = (
-                    (user_analyses['stress_sum'] - user_analyses['no_stress_sum'])
+                    ((user_analyses['stress_sum'] or 0.0) - (user_analyses['no_stress_sum'] or 0.0))
                     / user_analyses['total_count']
                 )
                 WellbeingAggregate.objects.update_or_create(
@@ -153,11 +153,11 @@ def aggregate_wellbeing():
 
                 if channel_analyses['total_count'] > 0:
                     sentiment_weighted_avg = (
-                        (channel_analyses['sentiment_sum'] - channel_analyses['neg_sentiment_sum'])
+                        ((channel_analyses['sentiment_sum'] or 0.0) - (channel_analyses['neg_sentiment_sum'] or 0.0))
                         / channel_analyses['total_count']
                     )
                     stress_weighted_avg = (
-                        (channel_analyses['stress_sum'] - channel_analyses['no_stress_sum'])
+                        ((channel_analyses['stress_sum'] or 0.0) - (channel_analyses['no_stress_sum'] or 0.0))
                         / channel_analyses['total_count']
                     )
                     WellbeingAggregate.objects.update_or_create(

@@ -48,3 +48,4 @@ temp/
 Thumbs.db
 
 model/
+.env
